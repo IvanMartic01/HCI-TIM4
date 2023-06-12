@@ -21,6 +21,32 @@ namespace TravelAgent.Service
             _databaseExecutionService = databaseExecutionService;
         }
 
+        public async Task Delete(int id)
+        {
+            string command = $"DELETE FROM {_consts.TripsTouristAttractionsTableName} " +
+                $"WHERE tourist_attraction_id = {id}";
+            await _databaseExecutionService.ExecuteNonQueryCommand(_consts.SqliteConnectionString, command);
+            command = $"DELETE FROM {_consts.TouristAttractionsTableName} " +
+                $"WHERE id = {id}";
+            await _databaseExecutionService.ExecuteNonQueryCommand(_consts.SqliteConnectionString, command);
+        }
+
+        public async Task Modify(int id, TouristAttractionModel touristAttraction)
+        {
+            string command = $"UPDATE {_consts.TouristAttractionsTableName} " +
+                $"SET name = '{touristAttraction.Name}', location_id = {touristAttraction.Location.Id}, " +
+                $"image = '{touristAttraction.Image}' " +
+                $"WHERE id = {id}";
+            await _databaseExecutionService.ExecuteNonQueryCommand(_consts.SqliteConnectionString, command);
+        }
+
+        public async Task Create(TouristAttractionModel touristAttraction)
+        {
+            string command = $"INSERT INTO {_consts.TouristAttractionsTableName} (name, location_id, image) " +
+                $"VALUES ('{touristAttraction.Name}', {touristAttraction.Location.Id}, '{touristAttraction.Image}')";
+            await _databaseExecutionService.ExecuteNonQueryCommand(_consts.SqliteConnectionString, command);
+        }
+
         public async Task<IEnumerable<TouristAttractionModel>> GetAll()
         {
             string touristAttractionTableAlias = "touristAttractionsTable";
@@ -47,7 +73,7 @@ namespace TravelAgent.Service
                     {
                         Id = reader.GetInt32(0),
                         Name = reader.GetString(1),
-                        Image = $"{_consts.PathToTouristAttractionsImages}/{reader.GetString(2)}",
+                        Image = reader.GetString(2),
                         Location = location
                     };
                     result.Add(touristAttraction);
@@ -87,7 +113,7 @@ namespace TravelAgent.Service
                     {
                         Id = reader.GetInt32(0),
                         Name = reader.GetString(1),
-                        Image = $"{_consts.PathToTouristAttractionsImages}/{reader.GetString(2)}",
+                        Image = reader.GetString(2),
                         Location = location
                     };
                     result.Add(touristAttraction);

@@ -21,6 +21,32 @@ namespace TravelAgent.Service
             _databaseExecutionService = databaseExecutionService;
         }
 
+        public async Task Delete(int id)
+        {
+            string command = $"DELETE FROM {_consts.TripsRestorauntsTableName} " +
+                $"WHERE restoraunt_id = {id}";
+            await _databaseExecutionService.ExecuteNonQueryCommand(_consts.SqliteConnectionString, command);
+            command = $"DELETE FROM {_consts.RestorauntsTableName} " +
+                $"WHERE id = {id}";
+            await _databaseExecutionService.ExecuteNonQueryCommand(_consts.SqliteConnectionString, command);
+        }
+
+        public async Task Modify(int id, RestorauntModel restoraunt)
+        {
+            string command = $"UPDATE {_consts.RestorauntsTableName} " +
+                $"SET name = '{restoraunt.Name}', stars = {restoraunt.Stars}, location_id = {restoraunt.Location.Id}, " +
+                $"image = '{restoraunt.Image}' " +
+                $"WHERE id = {id}";
+            await _databaseExecutionService.ExecuteNonQueryCommand(_consts.SqliteConnectionString, command);
+        }
+
+        public async Task Create(RestorauntModel restoraunt)
+        {
+            string command = $"INSERT INTO {_consts.RestorauntsTableName} (name, stars, location_id, image) " +
+                $"VALUES ('{restoraunt.Name}', {restoraunt.Stars}, {restoraunt.Location.Id}, '{restoraunt.Image}')";
+            await _databaseExecutionService.ExecuteNonQueryCommand(_consts.SqliteConnectionString, command);
+        }
+
         public async Task<IEnumerable<RestorauntModel>> GetAll()
         {
             string restourantsTableAlias = "restorauntsTable";
@@ -47,7 +73,7 @@ namespace TravelAgent.Service
                         Id = reader.GetInt32(0),
                         Name = reader.GetString(1),
                         Stars = reader.GetInt32(2),
-                        Image = $"{_consts.PathToRestorauntImages}/{reader.GetString(3)}",
+                        Image = reader.GetString(3),
                         Location = location
                     };
                     result.Add(restoraunt);
@@ -88,7 +114,7 @@ namespace TravelAgent.Service
                         Id = reader.GetInt32(0),
                         Name = reader.GetString(1),
                         Stars = reader.GetInt32(2),
-                        Image = $"{_consts.PathToRestorauntImages}/{reader.GetString(3)}",
+                        Image = reader.GetString(3),
                         Location = location
                     };
                     result.Add(restoraunt);

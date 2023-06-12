@@ -41,6 +41,10 @@ namespace TravelAgent.MVVM.ViewModel
         public static UserModel? SignedUser { get; set; }
         public static UserType? SignedUserType => SignedUser?.Type;
 
+        private static KeyBinding? _openCreateViewKeyBinding;
+        private static KeyBinding? _openModifyViewKeyBinding;
+        private static KeyBinding? _deleteEntityKeyBinding;
+
         public NavigationService NavigationService { get; }
 
         public ICommand OpenAllTripsViewCommand { get; }
@@ -63,11 +67,10 @@ namespace TravelAgent.MVVM.ViewModel
             OpenAllTouristAttractionsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<AllTouristAttractionsViewModel>(), o => true);
             OpenAllRestorauntsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<AllRestorauntsViewModel>(), o => true);
             OpenAllAccomodationsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<AllAccommodationsViewModel>(), o => true);
-            OpenUserTripsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<UserTripsViewModel>(), o => SignedUser?.Type == UserType.Traveler);
+            OpenUserTripsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<UserTripsViewModel>(), o => SignedUser != null);
             OpenMapsCommand = new RelayCommand(o => NavigationService.NavigateTo<MapViewModel>(), o => true);
             OpenHelpCommand = new RelayCommand(o => MessageBox.Show("This is very helpful :)"), o => SignedUser != null);
             OpenLoginViewCommand = new RelayCommand(o => NavigationService.NavigateTo<LoginViewModel>(), o => SignedUser == null);
-            OpenSoldTripsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<SoldTripsViewModel>(), o => SignedUser?.Type == UserType.Agent);
             LogoutCommand = new RelayCommand(OnLogout, o => SignedUser != null);
 
             NavigationService.NavigationCompleted += (object? sender, NavigationEventArgs e) =>
@@ -110,6 +113,36 @@ namespace TravelAgent.MVVM.ViewModel
             {
                 SignedUser = null;
                 NavigationService.NavigateTo<LoginViewModel>();
+            }
+        }
+
+        public static void AddCUDKeyBindings(
+            ICommand openCreateViewCommand,
+            ICommand openModifyViewCommand,
+            ICommand deleteEntityCommand)
+        {
+            Window window = Application.Current.MainWindow;
+            _openCreateViewKeyBinding = new KeyBinding(openCreateViewCommand, Key.N, ModifierKeys.Control);
+            _openModifyViewKeyBinding = new KeyBinding(openModifyViewCommand, Key.C, ModifierKeys.Control);
+            _deleteEntityKeyBinding = new KeyBinding(deleteEntityCommand, Key.D, ModifierKeys.Control);
+            window.InputBindings.Add(_openCreateViewKeyBinding);
+            window.InputBindings.Add(_openModifyViewKeyBinding);
+            window.InputBindings.Add(_deleteEntityKeyBinding);
+        } 
+
+        public static void RemoveCUDKeyBindings()
+        {
+            if (_openCreateViewKeyBinding != null &&
+                _openModifyViewKeyBinding != null &&
+                _deleteEntityKeyBinding != null)
+            {
+                Window window = Application.Current.MainWindow;
+                window.InputBindings.Remove(_openCreateViewKeyBinding);
+                window.InputBindings.Remove(_openModifyViewKeyBinding);
+                window.InputBindings.Remove(_deleteEntityKeyBinding);
+                _openCreateViewKeyBinding = null;
+                _openModifyViewKeyBinding = null;
+                _deleteEntityKeyBinding = null;
             }
         }
     }
