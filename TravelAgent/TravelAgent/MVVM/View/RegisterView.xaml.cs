@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace TravelAgent.MVVM.View
 {
     /// <summary>
-    /// Interaction logic for DeleteLaterView.xaml
+    /// Interaction logic for RegisterView.xaml
     /// </summary>
-    public partial class DeleteLaterView : UserControl
+    public partial class RegisterView : UserControl
     {
-        public DeleteLaterView()
+        public RegisterView()
         {
             InitializeComponent();
         }
