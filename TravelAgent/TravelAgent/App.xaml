@@ -58,14 +58,16 @@
             <SolidColorBrush x:Key="PurchasedTripLabelTextBrush" Color="{StaticResource PurchasedTripLabelTextColor}"/>
 
             <LinearGradientBrush x:Key="ButtonHighlightedBrush">
-                <GradientStop Color="BlueViolet" Offset="0.00"/>
-                <GradientStop Color="IndianRed" Offset="0.75"/>
+                <GradientStop Color="Red" Offset="0.00"/>
+                <GradientStop Color="Blue" Offset="1.00"/>
             </LinearGradientBrush>
             <LinearGradientBrush x:Key="ImageBorderBrush">
-                <GradientStop Color="BlueViolet" Offset="0.00"/>
-                <GradientStop Color="IndianRed" Offset="0.75"/>
-                <!--<GradientStop Color="#bbf" Offset="0.00"/>
-                <GradientStop Color="#bb0" Offset="1.00"/>-->
+                <GradientStop Color="Red" Offset="0.00"/>
+                <GradientStop Color="Blue" Offset="1.00"/>
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="ListViewItemSelectedBrush">
+                <GradientStop Color="Red" Offset="0.00"/>
+                <GradientStop Color="Blue" Offset="1.00"/>
             </LinearGradientBrush>
 
             <!-- Value converters -->
@@ -73,6 +75,7 @@
             <converter:DinarValueConverter x:Key="DinarValueConverter"/>
             <converter:HoursValueConverter x:Key="HoursValueConverter"/>
             <converter:PricePaidMarkupExtension x:Key="PricePaidMarkupExtension"/>
+            <converter:GreaterThanValueConverter x:Key="GreaterThanValueConverter"/>
 
             <!-- Star -->
             <Polygon x:Key="StarPolygon" Fill="Gold" Points="50,0 65,35 100,40 75,65 80,100 50,80 20,100 25,65 0,40 35,35"/>
@@ -86,8 +89,13 @@
                 <ResourceDictionary Source="./Theme/TripsListViewTheme.xaml"/>
                 <ResourceDictionary Source="./Theme/CustomScrollbarTheme.xaml"/>
                 <ResourceDictionary Source="./Theme/FancyButtonTheme.xaml"/>
-                <ResourceDictionary Source="./Theme/UserTripsTheme.xaml"/>
-                <ResourceDictionary Source="./Theme/UserFormButton.xaml"/>
+                <ResourceDictionary Source="./Theme/WideUserTripsTheme.xaml"/>
+                <ResourceDictionary Source="./Theme/FormButtonTheme.xaml"/>
+                <ResourceDictionary Source="./Theme/LocationComboBoxTheme.xaml"/>
+                <ResourceDictionary Source="./Theme/NarrowUserTripsTheme.xaml"/>
+                <ResourceDictionary Source="./Theme/CustomDatePickerTheme.xaml"/>
+                <ResourceDictionary Source="./Theme/CloseButtonTheme.xaml"/>
+                <ResourceDictionary Source="./Theme/BackButtonTheme.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
         </ResourceDictionary>

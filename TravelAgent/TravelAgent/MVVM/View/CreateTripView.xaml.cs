@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace TravelAgent.MVVM.View
 {
     /// <summary>
-    /// Interaction logic for MapLocationDetailsView.xaml
+    /// Interaction logic for CreateTripView.xaml
     /// </summary>
-    public partial class MapLocationDetailsView : UserControl
+    public partial class CreateTripView : UserControl
     {
-        public MapLocationDetailsView()
+        public CreateTripView()
         {
             InitializeComponent();
         }

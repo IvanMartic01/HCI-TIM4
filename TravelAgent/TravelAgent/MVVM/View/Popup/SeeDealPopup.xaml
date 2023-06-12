@@ -31,6 +31,13 @@
                 Grid.Column="0"
                 Grid.ColumnSpan="2"/>
 
+        <Button Style="{StaticResource CloseButtonTheme}"
+                HorizontalAlignment="Right"
+                Margin="30"
+                VerticalAlignment="Top"
+                Grid.Column="1"
+                Command="{Binding CloseCommand}"/>
+
         <StackPanel VerticalAlignment="Center"
                     HorizontalAlignment="Stretch"
                     Margin="30">
@@ -49,7 +56,7 @@
                     Grid.Column="1">
             <TextBlock Text="{Binding Trip.Destination.Name}"
                        HorizontalAlignment="Center"
-                       FontSize="40"
+                       FontSize="44"
                        Margin="20"
                        TextWrapping="Wrap"
                        FontWeight="Bold"/>
@@ -92,11 +99,6 @@
                         Command="{Binding ReserveTripCommand}"
                         Style="{StaticResource FancyButtonTheme}"/>
             </StackPanel>
-            <Button Content="Close"
-                    HorizontalAlignment="Stretch"
-                    Margin="30 10"
-                    Command="{Binding CloseCommand}"
-                    Style="{StaticResource FancyButtonTheme}"/>
         </StackPanel>
 
     </Grid>

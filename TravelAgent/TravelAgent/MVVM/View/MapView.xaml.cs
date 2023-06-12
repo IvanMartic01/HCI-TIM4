@@ -39,13 +39,22 @@ namespace TravelAgent.MVVM.View
 
         private void OnLoadFinished(object? sender, EventArgs e)
         {
-            foreach (LocationModel location in MapDataContext.AllLocations)
+            //foreach (LocationModel location in MapDataContext.AllLocations)
+            //{
+            //    mapControl.Children.Add(CreatePushpin(location.Latitude, location.Longitude, location.Name, location.Id));
+            //}
+            foreach (TripModel trip in MapDataContext.AllTrips)
             {
-                mapControl.Children.Add(CreatePushpin(location.Latitude, location.Longitude, location.Name, location.Id));
+                Pushpin startPushpin = CreatePushpin(trip.Departure.Latitude, trip.Departure.Longitude, trip.Departure.Name, $"Departure_{trip.Departure.Id}");
+                Pushpin endPushpin = CreatePushpin(trip.Destination.Latitude, trip.Destination.Longitude, trip.Destination.Name, $"Destination_{trip.Destination.Id}");
+
+                mapControl.Children.Add(startPushpin);
+                mapControl.Children.Add(endPushpin);
+                DrawLine(startPushpin.Location, endPushpin.Location);
             }
         }
 
-        private Pushpin CreatePushpin(double latitude, double longitude, string label, int tag)
+        private Pushpin CreatePushpin(double latitude, double longitude, string label, string tag)
         {
             // Create a new Pushpin
             Pushpin pushpin = new Pushpin();
@@ -82,11 +91,38 @@ namespace TravelAgent.MVVM.View
             return pushpin;
         }
 
+        private void DrawLine(Location startLocation, Location endLocation)
+        {
+            // Create a MapPolyline object
+            var polyline = new MapPolyline();
+
+            // Set the stroke color and thickness
+            polyline.Stroke = new SolidColorBrush(Colors.Black);
+            polyline.StrokeThickness = 2;
+
+            // Set the stroke dash array to create a dashed line effect
+            var dashedArray = new DoubleCollection { 2, 2 };
+            polyline.StrokeDashArray = dashedArray;
+
+            // Create a LocationCollection for the polyline's points
+            var locations = new LocationCollection();
+            locations.Add(startLocation);
+            locations.Add(endLocation);
+
+            // Set the polyline's locations
+            polyline.Locations = locations;
+
+            // Add the polyline to the map
+            mapControl.Children.Add(polyline);
+        }
+
         private void Pushpin_Click(object sender, MouseButtonEventArgs e)
         {
             Pushpin clickedPushpin = (Pushpin)sender;
 
-            LocationModel? location = MapDataContext.AllLocations.FirstOrDefault(l => l.Id == int.Parse(clickedPushpin.Tag.ToString()));
+            int locationId = int.Parse(clickedPushpin.Tag.ToString().Split("_")[1]);
+            string locationPlaceValue = clickedPushpin.Tag.ToString().Split("_")[0];  // indicates whether the location is the departure or destination
+            LocationModel? location = MapDataContext.AllLocations.FirstOrDefault(l => l.Id == locationId);
 
             if (location == null)
             {
@@ -96,6 +132,7 @@ namespace TravelAgent.MVVM.View
             // Set the image and text in the popup
             locationImage.Source = new BitmapImage(new Uri($"{MapDataContext.Consts.PathToLocationImages}/{location.Image}", UriKind.RelativeOrAbsolute));
             locationName.Text = location.Name;
+            locationPlace.Text = locationPlaceValue;
             locationContainer.Visibility = Visibility.Visible;
         }
 

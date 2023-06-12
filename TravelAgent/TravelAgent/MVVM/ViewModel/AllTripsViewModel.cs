@@ -44,26 +44,52 @@ namespace TravelAgent.MVVM.ViewModel
 
         public ObservableCollection<TripModel> AllTrips { get; set; }
 
-        public ICommand OpenMapLocationDetailsViewCommand { get; }
+        private TripModel? _selectedTrip;
+
+        public TripModel? SelectedTrip
+        {
+            get { return _selectedTrip; }
+            set { _selectedTrip = value; OnPropertyChanged(); }
+        }
+
+        private SeeDealPopup? _seeDealPopup;
+
         public ICommand OpenSeeDealPopupCommand { get; }
+        public ICommand OpenCreateTripViewCommand { get; }
+        public ICommand OpenModifyTripViewCommand { get; } // this is just the CreateTripView with a TripModel passed as parameter
+        public ICommand DeleteTripCommand { get; }
 
         public AllTripsViewModel(
             Service.NavigationService navigationService, 
             Service.TripService tripService,
             Service.UserTripService userTripService)
         {
-            SeeDealVisibility = MainViewModel.SignedUser.Type == Core.UserType.Traveler ? Visibility.Visible : Visibility.Collapsed;
-            BusIconVisibility = MainViewModel.SignedUser.Type == Core.UserType.Traveler ? Visibility.Collapsed : Visibility.Visible;
-            ToolbarVisibility = MainViewModel.SignedUser.Type == Core.UserType.Traveler ? Visibility.Collapsed : Visibility.Visible;
+            SeeDealVisibility = MainViewModel.SignedUser?.Type == Core.UserType.Traveler ?
+                Visibility.Visible : Visibility.Collapsed;
+            BusIconVisibility = MainViewModel.SignedUser?.Type == Core.UserType.Traveler ? 
+                Visibility.Collapsed : Visibility.Visible;
+            ToolbarVisibility = MainViewModel.SignedUser?.Type == Core.UserType.Agent ? 
+                Visibility.Visible : Visibility.Collapsed;
+
+            AllTrips = new ObservableCollection<TripModel>();
 
             _navigationService = navigationService;
             _tripService = tripService;
             _userTripService = userTripService;
 
-            OpenMapLocationDetailsViewCommand = new Core.RelayCommand(o => _navigationService.NavigateTo<MapLocationDetailsViewModel>(), o => true);
+            _navigationService.NavigationCompleted += OnNavigationCompleted;
+
             OpenSeeDealPopupCommand = new Core.RelayCommand(OnOpenSeeDealPopup , o => true);
+            OpenCreateTripViewCommand = new Core.RelayCommand(o => _navigationService.NavigateTo<CreateTripViewModel>(), o => true);
+            OpenModifyTripViewCommand = new Core.RelayCommand(o => _navigationService.NavigateTo<CreateTripViewModel>(SelectedTrip), o => SelectedTrip != null);
+            DeleteTripCommand = new Core.RelayCommand(OnDeleteTrip, o => SelectedTrip != null);
 
             LoadAll();
+        }
+
+        private void OnNavigationCompleted(object? sender, Core.NavigationEventArgs e)
+        {
+            _seeDealPopup?.Close();
         }
 
         private void OnOpenSeeDealPopup(object o)
@@ -72,15 +98,16 @@ namespace TravelAgent.MVVM.ViewModel
             {
                 int tripId = int.Parse(seeDealButton.Tag.ToString());
                 TripModel trip = AllTrips.FirstOrDefault(f => f.Id == tripId);
-                SeeDealPopup popup = new SeeDealPopup(trip, _userTripService);
-                popup.Show();
+
+                _seeDealPopup?.Close();
+                _seeDealPopup = new SeeDealPopup(trip, _userTripService);
+                _seeDealPopup.Show();
             }
         }
 
         private async void LoadAll()
         {
-            AllTrips = new ObservableCollection<TripModel>();
-
+            AllTrips.Clear();
             IEnumerable<TripModel> allTrip = await _tripService.GetAll();
             foreach (TripModel trip in allTrip)
             {
@@ -88,5 +115,15 @@ namespace TravelAgent.MVVM.ViewModel
             }
         }
 
+        private async void OnDeleteTrip(object o)
+        {
+            MessageBoxResult result = MessageBox.Show("Are you sure you want to delete this trip?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                await _tripService.Delete(SelectedTrip.Id);
+                LoadAll();
+                MessageBox.Show("Trip deleted successfully!");
+            }
+        }
     }
 }
