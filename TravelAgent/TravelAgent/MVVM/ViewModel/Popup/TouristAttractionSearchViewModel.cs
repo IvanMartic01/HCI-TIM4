@@ -89,11 +89,22 @@ namespace TravelAgent.MVVM.ViewModel.Popup
             }
         }
 
+        private Visibility _resetSearchVisibility = Visibility.Collapsed;
+
+        public Visibility ResetSearchVisibility
+        {
+            get { return _resetSearchVisibility; }
+            set { _resetSearchVisibility = value; OnPropertyChanged(); }
+        }
+
         private readonly TouristAttractionService _touristAttractionService;
 
         public AllTouristAttractionsViewModel AllTouristAttractionsViewModel { get; set; }
 
+        private bool _searchCommandRunning = false;
+
         public ICommand SearchCommand { get; }
+        public ICommand ResetSearchCommand { get; }
         public ICommand CloseCommand { get; }
 
         public TouristAttractionSearchViewModel(
@@ -104,6 +115,7 @@ namespace TravelAgent.MVVM.ViewModel.Popup
             _touristAttractionService = touristAttractionService;
 
             SearchCommand = new RelayCommand(OnSearch, CanSearch);
+            ResetSearchCommand = new RelayCommand(OnResetSearch, o => true);
             CloseCommand = new RelayCommand(OnClose, o => true);
         }
 
@@ -115,8 +127,17 @@ namespace TravelAgent.MVVM.ViewModel.Popup
             TouristAttractionSearchModel = new Model.TouristAttractionSearchModel();
         }
 
+        private async void OnResetSearch(object o)
+        {
+            await AllTouristAttractionsViewModel.LoadAll();
+            ResetSearchVisibility = Visibility.Collapsed;
+            OnClose(this);
+        }
+
         private async void OnSearch(object o)
         {
+            _searchCommandRunning = true;
+            
             if (_searchTypes.Count > 0)
             {
                 IEnumerable<Model.TouristAttractionModel> touristAttractions = await _touristAttractionService.Search(_searchTypes, TouristAttractionSearchModel);
@@ -125,11 +146,16 @@ namespace TravelAgent.MVVM.ViewModel.Popup
                 {
                     AllTouristAttractionsViewModel.TouristAttractions.Add(touristAttraction);
                 }
+                ResetSearchVisibility = Visibility.Visible;
             }
             else
             {
-                await AllTouristAttractionsViewModel.LoadAll();
+                MessageBox.Show("No criteria selected!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _searchCommandRunning = false;
+                return;
             }
+
+            _searchCommandRunning = false;
 
             OnClose(this);
         }
@@ -146,7 +172,7 @@ namespace TravelAgent.MVVM.ViewModel.Popup
                 canSearch = canSearch && !string.IsNullOrWhiteSpace(TouristAttractionSearchModel.AddressKeyword);
             }
 
-            return canSearch;
+            return canSearch && !_searchCommandRunning;
         }
 
         private void OnClose(object o)

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Maps.MapControl.WPF;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,7 +48,6 @@ namespace TravelAgent.MVVM.View
                     _viewModel.TripForModification.Departure.Address,
                     "Departure");
                 _viewModel.SelectedDepartureLocation = _viewModel.TripForModification.Departure;
-                _viewModel.DepartureAddress = _viewModel.TripForModification.Departure.Address;
 
                 // settings up destination attributes
                 _destinationPushpin = _viewModel.MapService.CreatePushpin(
@@ -56,7 +56,6 @@ namespace TravelAgent.MVVM.View
                     _viewModel.TripForModification.Destination.Address,
                     "Destination");
                 _viewModel.SelectedDestinationLocation = _viewModel.TripForModification.Destination;
-                _viewModel.DestinationAddress = _viewModel.TripForModification.Destination.Address;
 
                 // creating the line that connects departure and destination
                 _tripLine = _viewModel.MapService.CreatePushpinLine(_departurePushpin.Location, _destinationPushpin.Location);
@@ -99,7 +98,7 @@ namespace TravelAgent.MVVM.View
                     "Destination");
                 mapControl.Children.Add(_destinationPushpin);
                 _viewModel.SelectedDestinationLocation = location;
-                _viewModel.DestinationAddress = location.Address;
+                _viewModel.DestinationAddress = string.Empty;
 
                 _tripLine = mapService.CreatePushpinLine(_departurePushpin.Location, _destinationPushpin.Location);
                 mapControl.Children.Add(_tripLine);
@@ -112,25 +111,25 @@ namespace TravelAgent.MVVM.View
         private async void DrawPointsOfInterestPushpins()
         {
             await DrawAccomodationsPushpins();
-            await DrawRestorauntsPushpins();
+            await DrawRestaurantsPushpins();
             await DrawTouristAttractionPushpins();
         }
 
-        private async Task DrawRestorauntsPushpins()
+        private async Task DrawRestaurantsPushpins()
         {
             Service.MapService mapService = _viewModel.MapService;
             Consts consts = _viewModel.Consts;
 
-            await _viewModel.LoadAllRestoraunts();
+            await _viewModel.LoadAllRestaurants();
 
-            foreach (RestorauntModel restoraunt in _viewModel.AllRestoraunts)
+            foreach (RestaurantModel restaurant in _viewModel.AllRestaurants)
             {
                 Pushpin pushpin = mapService.CreatePushpin(
-                    restoraunt.Location.Latitude,
-                    restoraunt.Location.Longitude,
-                    restoraunt.Name,
-                    $"Restoraunt_{restoraunt.Id}",
-                    $"{consts.PathToIcons}/{consts.RestorauntPushpinIcon}");
+                    restaurant.Location.Latitude,
+                    restaurant.Location.Longitude,
+                    restaurant.Name,
+                    $"Restaurant_{restaurant.Id}",
+                    $"{consts.PathToIcons}/{consts.RestaurantPushpinIcon}");
                 mapControl.Children.Add(pushpin);
             }
 
@@ -189,7 +188,7 @@ namespace TravelAgent.MVVM.View
                     "Departure");
                 mapControl.Children.Add(_departurePushpin);
                 _viewModel.SelectedDepartureLocation = location;
-                _viewModel.DepartureAddress = location.Address;
+                _viewModel.DepartureAddress = string.Empty;
             }
             else
             {
@@ -207,7 +206,7 @@ namespace TravelAgent.MVVM.View
                     "Departure");
                 mapControl.Children.Add(_departurePushpin);
                 _viewModel.SelectedDepartureLocation = location;
-                _viewModel.DepartureAddress = location.Address;
+                _viewModel.DepartureAddress = string.Empty;
 
                 _tripLine = mapService.CreatePushpinLine(_departurePushpin.Location, _destinationPushpin.Location);
                 mapControl.Children.Add(_tripLine);
@@ -240,7 +239,7 @@ namespace TravelAgent.MVVM.View
                     "Departure");
                 mapControl.Children.Add(_departurePushpin);
                 _viewModel.SelectedDepartureLocation = location;
-                _viewModel.DepartureAddress = location.Address;
+                _viewModel.DepartureAddress = string.Empty;
             }
             else if (_destinationPushpin == null)
             {
@@ -251,7 +250,7 @@ namespace TravelAgent.MVVM.View
                     "Destination");
                 mapControl.Children.Add(_destinationPushpin);
                 _viewModel.SelectedDestinationLocation = location;
-                _viewModel.DestinationAddress = location.Address;
+                _viewModel.DestinationAddress = string.Empty;
 
                 _tripLine = mapService.CreatePushpinLine(_departurePushpin.Location, _destinationPushpin.Location);
                 mapControl.Children.Add(_tripLine);
@@ -272,7 +271,7 @@ namespace TravelAgent.MVVM.View
                 _viewModel.SelectedDepartureLocation = location;
                 _viewModel.SelectedDestinationLocation = null;
 
-                _viewModel.DepartureAddress = location.Address;
+                _viewModel.DepartureAddress = string.Empty;
                 _viewModel.DestinationAddress = string.Empty;
 
                 mapControl.Children.Add(_departurePushpin);
@@ -303,18 +302,18 @@ namespace TravelAgent.MVVM.View
             public string? SourceListViewName { get; set; }
         }
 
-        // restoraunts
-        Point restorauntStartPoint = new Point();
+        // restaurants
+        Point restaurantStartPoint = new Point();
 
-        private void RestorauntListView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void RestaurantListView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            restorauntStartPoint = e.GetPosition(null);
+            restaurantStartPoint = e.GetPosition(null);
         }
 
-        private void RestorauntListView_MouseMove(object sender, MouseEventArgs e)
+        private void RestaurantListView_MouseMove(object sender, MouseEventArgs e)
         {
             Point mousePos = e.GetPosition(null);
-            Vector diff = restorauntStartPoint - mousePos;
+            Vector diff = restaurantStartPoint - mousePos;
 
             if (e.LeftButton == MouseButtonState.Pressed &&
                 (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
@@ -331,13 +330,13 @@ namespace TravelAgent.MVVM.View
                 }
 
                 // Find the data behind the ListViewItem
-                RestorauntModel restoraunt = (RestorauntModel)listView.ItemContainerGenerator.
+                RestaurantModel restaurant = (RestaurantModel)listView.ItemContainerGenerator.
                     ItemFromContainer(listViewItem);
 
                 // Initialize the drag & drop operation
                 CustomDragObject dragObject = new CustomDragObject()
                 {
-                    Obj = restoraunt,
+                    Obj = restaurant,
                     SourceListViewName = $"{listView.Name}",
                 };
                 DataObject dragData = new DataObject("myFormat", dragObject);
@@ -345,7 +344,7 @@ namespace TravelAgent.MVVM.View
             }
         }
 
-        private void RestorauntListView_DragEnter(object sender, DragEventArgs e)
+        private void RestaurantListView_DragEnter(object sender, DragEventArgs e)
         {
             if (!e.Data.GetDataPresent("myFormat") || sender == e.Source)
             {
@@ -353,38 +352,38 @@ namespace TravelAgent.MVVM.View
             }
         }
 
-        private void RestorauntListView_Drop(object sender, DragEventArgs e)
+        private void RestaurantListView_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent("myFormat"))
             {
                 CustomDragObject dragObject = e.Data.GetData("myFormat") as CustomDragObject;
-                RestorauntModel restoraunt = (RestorauntModel)dragObject.Obj;
-                if (dragObject.SourceListViewName != allRestorauntsListView.Name)
+                RestaurantModel restaurant = (RestaurantModel)dragObject.Obj;
+                if (dragObject.SourceListViewName != allRestaurantsListView.Name)
                 {
                     return;
                 }
 
-                if (!_viewModel.RestorauntsForTrip.Contains(restoraunt))
+                if (!_viewModel.RestaurantsForTrip.Contains(restaurant))
                 {
-                    _viewModel.RestorauntsForTrip.Add(restoraunt);
+                    _viewModel.RestaurantsForTrip.Add(restaurant);
                 }
             }
         }
 
-        private void RestorauntListView_DropRemove(object sender, DragEventArgs e)
+        private void RestaurantListView_DropRemove(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent("myFormat"))
             {
                 CustomDragObject dragObject = e.Data.GetData("myFormat") as CustomDragObject;
-                RestorauntModel restoraunt = (RestorauntModel)dragObject.Obj;
-                if (dragObject.SourceListViewName != restorauntsForTripListView.Name)
+                RestaurantModel restaurant = (RestaurantModel)dragObject.Obj;
+                if (dragObject.SourceListViewName != restaurantsForTripListView.Name)
                 {
                     return;
                 }
 
-                if (_viewModel.RestorauntsForTrip.Contains(restoraunt))
+                if (_viewModel.RestaurantsForTrip.Contains(restaurant))
                 {
-                    _viewModel.RestorauntsForTrip.Remove(restoraunt);
+                    _viewModel.RestaurantsForTrip.Remove(restaurant);
                 }
             }
         }
@@ -560,6 +559,5 @@ namespace TravelAgent.MVVM.View
                 }
             }
         }
-
     }
 }

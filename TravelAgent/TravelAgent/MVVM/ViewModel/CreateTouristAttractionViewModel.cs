@@ -30,20 +30,20 @@ namespace TravelAgent.MVVM.ViewModel
             set { _modifying = value; OnPropertyChanged(); }
         }
 
-        private bool _isLocationChanged;
-
-        public bool IsLocationChanged
-        {
-            get { return _isLocationChanged; }
-            set { _isLocationChanged = value; OnPropertyChanged(); }
-        }
-
         private string _name;
 
         public string Name
         {
             get { return _name; }
             set { _name = value; OnPropertyChanged(); }
+        }
+
+        private Visibility _finalizationWarningVisibility = Visibility.Visible;
+
+        public Visibility FinalizationWarningVisibility
+        {
+            get { return _finalizationWarningVisibility; }
+            set { _finalizationWarningVisibility = value; OnPropertyChanged(); }
         }
 
         private PickLocationPopup? _pickLocationPopup;
@@ -53,6 +53,8 @@ namespace TravelAgent.MVVM.ViewModel
         private readonly TouristAttractionService _touristAttractionService;
         private readonly LocationService _locationService;
         private readonly ImageService _imageService;
+
+        private bool _createTouristAttractionCommandRunning = false;
 
         public ICommand OpenLocationPickerCommand { get; }
         public ICommand CreateTouristAttractionCommand { get; }
@@ -74,13 +76,15 @@ namespace TravelAgent.MVVM.ViewModel
             _navigationService.NavigationCompleted += OnNavigationCompleted;
 
             OpenLocationPickerCommand = new RelayCommand(OnOpenLocationPicker, o => true);
-            CreateTouristAttractionCommand = new RelayCommand(OnCreateAccommodation, CanCreateTouristAttraction);
+            CreateTouristAttractionCommand = new RelayCommand(OnCreateTouristAttraction, CanCreateTouristAttraction);
             ClosePopupCommand = new RelayCommand(o => _pickLocationPopup?.Close(), o => _pickLocationPopup != null);
 
         }
 
-        private async void OnCreateAccommodation(object o)
+        private async void OnCreateTouristAttraction(object o)
         {
+            _createTouristAttractionCommandRunning = true;
+
             if (!Modifying)
             {
                 LocationModel location = await _locationService.Create(Location);
@@ -95,13 +99,14 @@ namespace TravelAgent.MVVM.ViewModel
                 await _touristAttractionService.Create(newTouristAttraction);
 
                 MessageBox.Show("Tourist attraction created successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                SetDefaultValues();
             }
             else
             {
+                int locationForDeletionId = 0;
                 LocationModel location = TouristAttractionForModification.Location;
                 if (Location.Id != TouristAttractionForModification.Location.Id)
                 {
+                    locationForDeletionId = TouristAttractionForModification.Location.Id;
                     location = await _locationService.Create(Location);
                 }
 
@@ -113,15 +118,32 @@ namespace TravelAgent.MVVM.ViewModel
                 };
 
                 await _touristAttractionService.Modify(TouristAttractionForModification.Id, modifiedTouristAttraction);
+                if (locationForDeletionId != 0)
+                {
+                    await _locationService.Delete(locationForDeletionId);
+                }
+
                 MessageBox.Show("Tourist attraction modified successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                _navigationService.NavigateTo<AllTouristAttractionsViewModel>();
             }
+
+            _createTouristAttractionCommandRunning = false;
+            _navigationService.NavigateTo<AllTouristAttractionsViewModel>();
         }
 
         private bool CanCreateTouristAttraction(object o)
         {
-            return !string.IsNullOrWhiteSpace(Name) &&
-                Location != null;
+            bool canCreateTouristAttraction = !string.IsNullOrWhiteSpace(Name) &&
+                Location != null &&
+                !_createTouristAttractionCommandRunning;
+            if (canCreateTouristAttraction)
+            {
+                FinalizationWarningVisibility = Visibility.Collapsed;
+            }
+            else
+            {
+                FinalizationWarningVisibility = Visibility.Visible;
+            }
+            return canCreateTouristAttraction;
         }
 
         private void SetDefaultValues()

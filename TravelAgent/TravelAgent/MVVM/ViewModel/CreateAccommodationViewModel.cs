@@ -63,7 +63,11 @@ namespace TravelAgent.MVVM.ViewModel
                         _rating = "0";
                     }
 
-                    double.Parse(value);
+                    double doubleValue = double.Parse(value);
+                    if (value.Contains('-'))
+                    {
+                        return;
+                    }
 
                     if (_rating == "0" && value.Length > 1)
                     {
@@ -76,11 +80,25 @@ namespace TravelAgent.MVVM.ViewModel
                             value = value[0] + value[2..];
                         }
                     }
+
+                    if (double.Parse(value) > 5.0)
+                    {
+                        return;
+                    }
+
                     _rating = value; 
                     OnPropertyChanged(); 
                 }
                 catch (FormatException) { }
             }
+        }
+
+        private Visibility _finalizationWarningVisibility = Visibility.Visible;
+
+        public Visibility FinalizationWarningVisibility
+        {
+            get { return _finalizationWarningVisibility; }
+            set { _finalizationWarningVisibility = value; OnPropertyChanged(); }
         }
 
         private PickLocationPopup? _pickLocationPopup;
@@ -90,6 +108,8 @@ namespace TravelAgent.MVVM.ViewModel
         private readonly AccommodationService _accommodationService;
         private readonly LocationService _locationService;
         private readonly ImageService _imageService;
+
+        private bool _createAccommodationCommandRunning = false;
 
         public ICommand OpenLocationPickerCommand { get; }
         public ICommand CreateAccommodationCommand { get; }
@@ -119,10 +139,13 @@ namespace TravelAgent.MVVM.ViewModel
 
         private async void OnCreateAccommodation(object o)
         {
+            _createAccommodationCommandRunning = true;
+
             double rating = double.Parse(Rating);
             if (rating < 0 || rating > 5.0)
             {
                 MessageBox.Show("Rating must be between 0 and 5!", "Error", MessageBoxButton.OKCancel, MessageBoxImage.Error);
+                _createAccommodationCommandRunning = false;
                 return;
             }
 
@@ -141,13 +164,14 @@ namespace TravelAgent.MVVM.ViewModel
                 await _accommodationService.Create(newAccommodation);
 
                 MessageBox.Show("Accommodation created successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                SetDefaultValues();
             }
             else
             {
+                int locationForDeletionId = 0;
                 LocationModel location = AccommodationForModification.Location;
                 if (Location.Id != AccommodationForModification.Location.Id)
                 {
+                    locationForDeletionId = AccommodationForModification.Location.Id;
                     location = await _locationService.Create(Location);
                 }
 
@@ -160,15 +184,32 @@ namespace TravelAgent.MVVM.ViewModel
                 };
 
                 await _accommodationService.Modify(AccommodationForModification.Id, modifiedAccommdation);
+                if (locationForDeletionId != 0)
+                {
+                    await _locationService.Delete(locationForDeletionId);
+                }
+
                 MessageBox.Show("Accommodation modified successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                _navigationService.NavigateTo<AllAccommodationsViewModel>();
             }
+
+            _createAccommodationCommandRunning = false;
+            _navigationService.NavigateTo<AllAccommodationsViewModel>();
         }
 
         private bool CanCreateAccommodation(object o)
         {
-            return !string.IsNullOrWhiteSpace(Name) &&
-                Location != null;
+            bool canCreateAccommodation = !string.IsNullOrWhiteSpace(Name) &&
+                Location != null &&
+                !_createAccommodationCommandRunning;
+            if (canCreateAccommodation)
+            {
+                FinalizationWarningVisibility = Visibility.Collapsed;
+            }
+            else
+            {
+                FinalizationWarningVisibility = Visibility.Visible;
+            }
+            return canCreateAccommodation;
         }
 
         private void SetDefaultValues()
