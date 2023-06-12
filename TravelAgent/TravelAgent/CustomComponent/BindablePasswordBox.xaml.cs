@@ -13,13 +13,41 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace TravelAgent.Core
+namespace TravelAgent.CustomComponent
 {
     /// <summary>
     /// Interaction logic for BindablePasswordBox.xaml
     /// </summary>
     public partial class BindablePasswordBox : UserControl
     {
+        // Password box style property
+        //----------------------------------------------
+        public static readonly DependencyProperty PasswordBoxStyleProperty =
+        DependencyProperty.Register("PasswordBoxStyle", typeof(Style), typeof(BindablePasswordBox),
+            new PropertyMetadata(null, PasswordBoxStylePropertyChanged));
+
+        public Style PasswordBoxStyle
+        {
+            get { return (Style)GetValue(PasswordBoxStyleProperty); }
+            set { SetValue(PasswordBoxStyleProperty, value); }
+        }
+
+        private static void PasswordBoxStylePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is BindablePasswordBox bindablePasswordBox)
+            {
+                bindablePasswordBox.ApplyPasswordBoxStyle();
+            }
+        }
+
+        private void ApplyPasswordBoxStyle()
+        {
+            passwordBox.Style = PasswordBoxStyle;
+        }
+        //----------------------------------------------
+
+        // Password value property 
+        //----------------------------------------------
         public string Password
         {
             get { return (string)GetValue(PasswordProperty); }
@@ -47,10 +75,12 @@ namespace TravelAgent.Core
                 passwordBox.Password = Password;
             }
         }
+        //----------------------------------------------
 
         public BindablePasswordBox()
         {
             InitializeComponent();
+            ApplyPasswordBoxStyle();
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)

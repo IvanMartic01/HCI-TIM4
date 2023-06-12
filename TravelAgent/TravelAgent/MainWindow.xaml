@@ -7,15 +7,36 @@
         mc:Ignorable="d"
         xmlns:view="clr-namespace:TravelAgent.MVVM.View"
         xmlns:viewModel="clr-namespace:TravelAgent.MVVM.ViewModel"
-        Title="Travel Agent" Height="450" Width="800">
+        Title="Travel Agent" Height="600" Width="1000"
+        Background="#fff"
+        WindowStartupLocation="CenterScreen">
     <Grid>
-        <ContentControl IsTabStop="False"
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0"
+              Visibility="{Binding MenuVisibility}">
+            <MenuItem Header="View">
+                <MenuItem Header="Flights"/>
+                <MenuItem Header="Tourist attractions"/>
+                <MenuItem Header="Restoraunts"/>
+                <MenuItem Header="Accomodations"/>
+                <MenuItem Header="Purchased flights"/>
+            </MenuItem>
+            <MenuItem Header="Map"/>
+            <MenuItem Header="Help"
+                      Command="{Binding OpenHelpCommand}"/>
+            <MenuItem Header="Logout"
+                      Command="{Binding LogoutCommand}"/>
+        </Menu>
+        
+        <ContentControl Grid.Row="1"
+                        IsTabStop="False"
                         Content="{Binding NavigationService.CurrentViewModel}">
             <ContentControl.Resources>
-
-                <DataTemplate DataType="{x:Type viewModel:HomeViewModel}">
-                    <view:HomeView/>
-                </DataTemplate>
 
                 <DataTemplate DataType="{x:Type viewModel:LoginViewModel}">
                     <view:LoginView/>
@@ -23,6 +44,10 @@
 
                 <DataTemplate DataType="{x:Type viewModel:RegisterViewModel}">
                     <view:RegisterView/>
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type viewModel:AllFlightsViewModel}">
+                    <view:AllFlightsView/>
                 </DataTemplate>
 
             </ContentControl.Resources>

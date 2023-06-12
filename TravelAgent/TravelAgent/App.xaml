@@ -1,18 +1,52 @@
 ﻿<Application x:Class="TravelAgent.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:TravelAgent">
+             xmlns:local="clr-namespace:TravelAgent"
+             xmlns:valueConverter="clr-namespace:TravelAgent.ValueConverter">
     <Application.Resources>
 
         <ResourceDictionary>
 
-            <Style TargetType="TextBlock">
-                <Setter Property="FontSize" Value="16"/>
-            </Style>
+            <!-- Fonts -->
+            <FontFamily x:Key="WorkSans">./Font/WorkSans-VariableFont_wght.ttf#Work Sans</FontFamily>
 
+            <!-- Global styles -->
+            <Style TargetType="TextBlock">
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="FontFamily" Value="{StaticResource WorkSans}"/>
+            </Style>
             <Style TargetType="TextBox">
                 <Setter Property="FontSize" Value="16"/>
             </Style>
+            <Style TargetType="MenuItem">
+                <Setter Property="Padding" Value="10 5"/>
+                <!--<Setter Property="Foreground" Value="#000"/>-->
+            </Style>
+
+            <!-- Colors -->
+            <Color x:Key="TextBoxNotInFocusColor">#bbb</Color>
+            <Color x:Key="TextBoxInFocusColor">#19d</Color>
+            <Color x:Key="TextBoxFontColor">#111</Color>
+            <Color x:Key="DataGridRowSelectedColor">LightCyan</Color>
+            <Color x:Key="MainTextColor">#000</Color>
+
+            <!-- Solid brushes -->
+            <SolidColorBrush x:Key="TextBoxNotInFocusBrush" Color="{StaticResource TextBoxNotInFocusColor}"/>
+            <SolidColorBrush x:Key="TextBoxInFocusBrush" Color="{StaticResource TextBoxInFocusColor}"/>
+            <SolidColorBrush x:Key="TextBoxFontBrush" Color="{StaticResource TextBoxFontColor}"/>
+            <SolidColorBrush x:Key="DataGridRowSelectedBrush" Color="{StaticResource DataGridRowSelectedColor}"/>
+            <SolidColorBrush x:Key="MainTextBrush" Color="{StaticResource MainTextColor}"/>
+
+            <!-- Value converters -->
+            <valueConverter:LocationValueConverter x:Key="LocationValueConverter"/>
+
+            <!-- Themes from the 'Theme' folder -->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="./Theme/FormTextBoxTheme.xaml"/>
+                <ResourceDictionary Source="./Theme/FlightsDataGridTheme.xaml"/>
+                <ResourceDictionary Source="./Theme/FlightsListViewTheme.xaml"/>
+                <ResourceDictionary Source="./Theme/CustomScrollbarTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
 
         </ResourceDictionary>
          

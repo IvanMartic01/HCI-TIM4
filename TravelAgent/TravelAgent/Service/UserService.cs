@@ -24,17 +24,6 @@ namespace TravelAgent.Service
             _databaseExcecutionService = databaseExcecutionService;
         }
 
-        private UserModel ConvertToUser(SqliteDataReader reader)
-        {
-            return new UserModel()
-            {
-                Id = int.Parse(reader.GetString(0)),
-                Name = reader.GetString(1),
-                Surname = reader.GetString(2),
-                Username = reader.GetString(3),
-            };
-        }
-
         public async Task<IEnumerable<UserModel>> GetAll()
         {
             string command = $"SELECT * FROM {_tableName}";
@@ -43,7 +32,13 @@ namespace TravelAgent.Service
             {
                 while (reader.Read())
                 {
-                    UserModel user = ConvertToUser(reader);
+                    UserModel user = new UserModel() 
+                    { 
+                        Id = reader.GetInt32(0),
+                        Name = reader.GetString(1), 
+                        Surname = reader.GetString(2), 
+                        Username = reader.GetString(3)
+                    };
                     collection.Add(user);
                 }
             });
@@ -53,7 +48,7 @@ namespace TravelAgent.Service
         public async Task Login(string username, string password)
         {
             string command = $"SELECT * FROM {_tableName} WHERE username = '{username}' AND password = '{password}'";
-            bool exists = false;
+            bool exists = true;
             await _databaseExcecutionService.ExecuteQueryCommand(_consts.ConnectionString, command, (reader) =>
             {
                 exists = reader.Read();
@@ -68,20 +63,20 @@ namespace TravelAgent.Service
         public async Task Create(UserModel user, string password)
         {
             string validationQuery = $"SELECT * FROM {_tableName} WHERE username = '{user.Username}'";
-            bool valid = false;
+            bool taken = false;
             await _databaseExcecutionService.ExecuteQueryCommand(_consts.ConnectionString, validationQuery, (reader) =>
             {
-                valid = !reader.Read();
+                taken = reader.Read();
             });
 
-            if (!valid)
+            if (taken)
             {
                 throw new DatabaseResponseException("Username is taken!");
             }
             
-            string insertCommand = $"INSERT INTO {_tableName} (name, surname, username, password) " +
+            string command = $"INSERT INTO {_tableName} (name, surname, username, password) " +
                 $"VALUES ('{user.Name}', '{user.Surname}', '{user.Username}', '{password}')";
-            await _databaseExcecutionService.ExecuteNonQueryCommand(_consts.ConnectionString, insertCommand);
+            await _databaseExcecutionService.ExecuteNonQueryCommand(_consts.ConnectionString, command);
 
         }
     }
