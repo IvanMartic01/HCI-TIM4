@@ -4,8 +4,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using TravelAgent.MVVM.Model;
+using TravelAgent.MVVM.View.Popup;
 
 namespace TravelAgent.MVVM.ViewModel
 {
@@ -16,7 +19,8 @@ namespace TravelAgent.MVVM.ViewModel
 
         public ObservableCollection<FlightModel> AllFlights { get; set; }
 
-        public ICommand LogoutCommand { get; }
+        public ICommand OpenMapLocationDetailsViewCommand { get; }
+        public ICommand OpenSeeDealPopupCommand { get; }
 
         public AllFlightsViewModel(
             Service.NavigationService navigationService, 
@@ -25,9 +29,21 @@ namespace TravelAgent.MVVM.ViewModel
             _navigationService = navigationService;
             _flightService = flightService;
 
-            LogoutCommand = new Core.RelayCommand((object o) => _navigationService.NavigateTo<LoginViewModel>(), (object o) => true);
+            OpenMapLocationDetailsViewCommand = new Core.RelayCommand(o => _navigationService.NavigateTo<MapLocationDetailsViewModel>(), o => true);
+            OpenSeeDealPopupCommand = new Core.RelayCommand(OnOpenSeeDealPopup , o => true);
 
             LoadAll();
+        }
+
+        private void OnOpenSeeDealPopup(object o)
+        {
+            if (o is Button seeDealButton)
+            {
+                double flightId = double.Parse(seeDealButton.Tag.ToString());
+                FlightModel flight = AllFlights.FirstOrDefault(f => f.Id == flightId);
+                SeeDealPopup popup = new SeeDealPopup(flight);
+                popup.Show();
+            }
         }
 
         private async void LoadAll()

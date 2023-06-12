@@ -10,8 +10,9 @@
     <Grid>
 
         <StackPanel VerticalAlignment="Center"
-                    HorizontalAlignment="Stretch"
-                    Margin="20 10">
+                    HorizontalAlignment="Center"
+                    Margin="20 10"
+                    MinWidth="500">
 
             <StackPanel Margin="20 10">
                 <TextBlock Text="Username"
@@ -35,15 +36,13 @@
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Margin="10"
-                        Width="100"
-                        Padding="0 5"
+                        Style="{StaticResource FancyButtonTheme}"
                         Command="{Binding LoginCommand}"/>
                 <Button Content="Register"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"
                         Margin="10"
-                        Width="100"
-                        Padding="0 5"
+                        Style="{StaticResource FancyButtonTheme}"
                         Command="{Binding NavigateToRegisterViewCommand}"/>
 
             </StackPanel>
