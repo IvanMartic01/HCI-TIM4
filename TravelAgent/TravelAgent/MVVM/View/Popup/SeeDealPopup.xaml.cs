@@ -49,7 +49,7 @@ namespace TravelAgent.MVVM.View.Popup
             DateTime takeoff = _viewModel.Trip.DepartureDateTime;
             DateTime landing = _viewModel.Trip.ArrivalDateTime;
             TimeSpan timeDiff = landing - takeoff;
-            _viewModel.TripDuration = timeDiff.Hours;
+            _viewModel.TripDuration = (int)timeDiff.TotalMilliseconds;
         }
 
         private void Popup_Loaded(object sender, RoutedEventArgs e)
@@ -98,7 +98,7 @@ namespace TravelAgent.MVVM.View.Popup
                 mapControl.Children.Add(touristAttractionPushpin);
             }
 
-            // Draw restoraunt
+            // Draw restoraunts
             await _viewModel.LoadRestorauntsForTrip();
             foreach (RestorauntModel restoraunt in _viewModel.RestorauntsForTrip)
             {
