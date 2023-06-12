@@ -19,14 +19,17 @@
             <Button Content="+"
                     Padding="20 5"
                     Foreground="CadetBlue"
+                    ToolTip="Add tourist attraction"
                     FontWeight="Bold"
                     Margin="10 5"/>
             <Button Content="✏️"
                     Foreground="DarkGoldenrod"
                     Padding="20 5"
+                    ToolTip="Modify tourist attraction"
                     Margin="10 5"/>
             <Button Content="❌"
                     Foreground="DarkRed"
+                    ToolTip="Delete tourist attraction"
                     Padding="20 5"
                     Margin="10 5"/>
         </ToolBar>
@@ -35,6 +38,7 @@
                   Grid.Row="1"
                   BorderThickness="0"
                   Background="Transparent"
+                  Padding="30 0"
                   HorizontalAlignment="Center"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListView.ItemContainerStyle>
@@ -62,7 +66,7 @@
                                                     CornerRadius="5"
                                                     BorderBrush="{StaticResource ImageBorderBrush}"
                                                     Margin="0 20">
-                                                <Image Source="../../../Image/Location/belgrade.jpg"/>
+                                                <Image Source="{Binding Image}"/>
                                             </Border>
 
                                         </StackPanel>

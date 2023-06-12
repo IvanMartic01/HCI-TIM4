@@ -4,196 +4,629 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:TravelAgent.MVVM.View"
+             xmlns:m="clr-namespace:Microsoft.Maps.MapControl.WPF;assembly=Microsoft.Maps.MapControl.WPF"
              xmlns:component="clr-namespace:TravelAgent.CustomComponent"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             Loaded="UserControl_Loaded"
+             d:DesignHeight="720" d:DesignWidth="1280">
+
+    <UserControl.Resources>
+        <Style TargetType="ListViewItem" x:Key="RestorauntItemTheme">
+            <Style.Setters>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListViewItem">
+                            <Border Padding="10 20"
+                                    Margin="20"
+                                    x:Name="CUSTOM_PART_Border"
+                                    CornerRadius="25"
+                                    Background="Transparent"
+                                    BorderThickness="3"
+                                    BorderBrush="{StaticResource DefaultBorderBrush}">
+                                <StackPanel>
+                                    <Border BorderBrush="{StaticResource ImageBorderBrush}"
+                                            BorderThickness="5"
+                                            Width="Auto"
+                                            MaxWidth="400"
+                                            Margin="0 10"
+                                            CornerRadius="3">
+                                        <Image Source="{Binding Image}"/>
+
+                                    </Border>
+                                    <component:ScalableTextBlock Text="{Binding Name}"
+                                                                 HorizontalAlignment="Center"
+                                                                 Padding="10"
+                                                                 FontWeight="SemiBold"
+                                                                 TextWrapping="Wrap"
+                                                                 FontSize="50"
+                                                                 Margin="10"/>
+                                    <component:ScalableTextBlock Text="{Binding Location.Address}"
+                                                                 HorizontalAlignment="Center"
+                                                                 TextWrapping="Wrap"
+                                                                 Padding="10"
+                                                                 FontSize="34"
+                                                                 Margin="10"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+                                        <Image Source="../../../Image/Icon/star.png"
+                                               Grid.Column="0"/>
+                                        <Image Source="../../../Image/Icon/star.png"
+                                               Grid.Column="1">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="1">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                        <Image Source="../../../Image/Icon/star.png"
+                                               Grid.Column="2">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="2">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="1">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                        <Image Source="../../../Image/Icon/star.png"
+                                               Grid.Column="3">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="3">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="2">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="1">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                        <Image Source="../../../Image/Icon/star.png"
+                                               Grid.Column="4">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="4">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="3">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="2">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Stars}" Value="1">
+                                                            <Setter Property="Visibility" Value="Hidden"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                    </Grid>
+
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter TargetName="CUSTOM_PART_Border" Property="BorderBrush" Value="{StaticResource ListViewItemSelectedBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style.Setters>
+            
+        </Style>
+        <Style TargetType="ListViewItem" x:Key="AccommodationItemTheme">
+            <Style.Setters>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListViewItem">
+                            <Border Padding="10 20"
+                                    Margin="20"
+                                    x:Name="CUSTOM_PART_Border"
+                                    CornerRadius="25"
+                                    Background="Transparent"
+                                    BorderThickness="3"
+                                    BorderBrush="{StaticResource DefaultBorderBrush}">
+                                <StackPanel>
+                                    <Border BorderBrush="{StaticResource ImageBorderBrush}"
+                                            BorderThickness="5"
+                                            MaxWidth="500"
+                                            Width="Auto"
+                                            Margin="0 10"
+                                            CornerRadius="3">
+                                        <Image Source="{Binding Image}"/>
+
+                                    </Border>
+                                    <component:ScalableTextBlock Text="{Binding Name}"
+                                                                 HorizontalAlignment="Center"
+                                                                 Padding="10"
+                                                                 FontWeight="SemiBold"
+                                                                 TextWrapping="Wrap"
+                                                                 FontSize="50"
+                                                                 Margin="0"/>
+                                    <component:ScalableTextBlock Text="{Binding Location.Address}"
+                                                                 HorizontalAlignment="Center"
+                                                                 TextWrapping="Wrap"
+                                                                 Padding="10"
+                                                                 FontSize="34"
+                                                                 Margin="0"/>
+                                    <component:ScalableTextBlock Text="{Binding Rating, Converter={StaticResource RatingValueConverter}}"
+                                                                 HorizontalAlignment="Center"
+                                                                 TextWrapping="Wrap"
+                                                                 Padding="10"
+                                                                 FontWeight="SemiBold"
+                                                                 FontSize="36"
+                                                                 Margin="0"/>
+
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter TargetName="CUSTOM_PART_Border" Property="BorderBrush" Value="{StaticResource ListViewItemSelectedBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style.Setters>
+
+            
+        </Style>
+        <Style TargetType="ListViewItem" x:Key="TouristAttractionItemTheme">
+
+            <Style.Setters>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListViewItem">
+                            <Border Padding="10 20"
+                                    Margin="20"
+                                    x:Name="CUSTOM_PART_Border"
+                                    CornerRadius="25"
+                                    Background="Transparent"
+                                    BorderThickness="3"
+                                    BorderBrush="{StaticResource DefaultBorderBrush}">
+                                <StackPanel>
+                                    <Border BorderBrush="{StaticResource ImageBorderBrush}"
+                                            BorderThickness="5"
+                                            MaxWidth="500"
+                                            Width="Auto"
+                                            Margin="0 10"
+                                            CornerRadius="3">
+                                        <Image Source="{Binding Image}"/>
+
+                                    </Border>
+                                    <component:ScalableTextBlock Text="{Binding Name}"
+                                                                 HorizontalAlignment="Center"
+                                                                 Padding="10"
+                                                                 FontWeight="SemiBold"
+                                                                 TextWrapping="Wrap"
+                                                                 FontSize="50"
+                                                                 Margin="0"/>
+                                    <component:ScalableTextBlock Text="{Binding Location.Address}"
+                                                                 HorizontalAlignment="Center"
+                                                                 TextWrapping="Wrap"
+                                                                 Padding="10"
+                                                                 FontSize="34"
+                                                                 Margin="0"/>
+
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Setter TargetName="CUSTOM_PART_Border" Property="BorderBrush" Value="{StaticResource ListViewItemSelectedBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style.Setters>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
 
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
-            <StackPanel HorizontalAlignment="Stretch"
-                        VerticalAlignment="Center"
-                        Margin="20 0"
-                        MaxWidth="700">
+        <TabControl IsTabStop="False">
+            <TabItem Header="Departure and destination"
+                     IsTabStop="False"
+                     Padding="10">
 
-                <ContentControl>
-                    <ContentControl.Style>
-                        <Style TargetType="ContentControl">
-                            <Setter Property="Content">
-                                <Setter.Value>
-                                    <component:ScalableTextBlock Text="Create trip"
-                                                                 VerticalAlignment="Center"
-                                                                 FontSize="54"
-                                                                 ScaleRate="2"
-                                                                 HorizontalAlignment="Center"
-                                                                 FontWeight="SemiBold"/>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding DataContext.Modifying, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4*"/>
+                        <ColumnDefinition Width="3*"/>
+                    </Grid.ColumnDefinitions>
+
+
+                    <Border Width="Auto"
+                            BorderThickness="5"
+                            Margin="20"
+                            Grid.Column="0"
+                            CornerRadius="3"
+                            BorderBrush="{DynamicResource DefaultBorderBrush}">
+                        <m:Map x:Name="mapControl" 
+                               MouseDoubleClick="Map_MouseDoubleClick"
+                               CredentialsProvider="AlMtjm3qYzhPYIYWWq76wu7Be68h6ebShf43PYwn1RH8a05_Ksk_mz9_M5m71Rmr" 
+                               Center="44.1871, 20.8572"
+                               IsTabStop="False"
+                               ZoomLevel="8"/>
+
+                    </Border>
+
+                    <ScrollViewer Grid.Column="1"
+                                  VerticalScrollBarVisibility="Auto">
+
+
+                        <StackPanel Grid.Column="1"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Center">
+                            <component:ScalableTextBlock Text="Choose the Departure and Destination"
+                                                         FontSize="44"
+                                                         ScaleRate="2"
+                                                         TextWrapping="Wrap"
+                                                         HorizontalAlignment="Center"
+                                                         Margin="10 30"/>
+                            <StackPanel Margin="10 20">
+                                <component:ScalableTextBlock Text="Departure"
+                                                             ScaleRate="2"
+                                                             FontSize="30"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Style="{StaticResource LocationSearchTextBoxTheme}"
+                                             Grid.Column="0"
+                                             TextWrapping="Wrap"
+                                             Text="{Binding DepartureAddress, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Command="{Binding SearchDepartureFromAddressCommand}" Key="Return"/>
+                                        </TextBox.InputBindings>
+                                    </TextBox>
+
+                                    <Button Content="→"
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding SearchDepartureFromAddressCommand}"
+                                            Margin="20 0"
+                                            Style="{DynamicResource LocationSearchButtonTheme}"/>
+
+                                </Grid>
+                            </StackPanel>
+                            <StackPanel Margin="10 20">
+                                <component:ScalableTextBlock Text="Destination"
+                                                             ScaleRate="2"
+                                                             FontSize="30"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Style="{StaticResource LocationSearchTextBoxTheme}"
+                                             Grid.Column="0"
+                                             TextWrapping="Wrap"
+                                             Text="{Binding DestinationAddress, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Command="{Binding SearchDestinationFromAddressCommand}" Key="Return"/>
+                                        </TextBox.InputBindings>
+                                    </TextBox>
+
+                                    <Button Content="→"
+                                            Grid.Column="1"
+                                            Margin="20 0"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding SearchDestinationFromAddressCommand}"
+                                            Style="{DynamicResource LocationSearchButtonTheme}"/>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                </Grid>
+
+            </TabItem>
+
+            <TabItem Header="Restoraunts"
+                     IsTabStop="False"
+                     Padding="10">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <component:ScalableTextBlock Text="Add Restoraunts to Trip"
+                                                 ScaleRate="2"
+                                                 Margin="20"
+                                                 FontSize="50"
+                                                 Grid.ColumnSpan="2"
+                                                 Grid.Row="0"
+                                                 HorizontalAlignment="Center"/>
+
+                    <ListView Grid.Column="0"
+                              Grid.Row="1"
+                              Margin="20"
+                              Padding="20"
+                              BorderThickness="3"
+                              AllowDrop="True"
+                              DragEnter="RestorauntListView_DragEnter" 
+                              Drop="RestorauntListView_Drop"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.CanContentScroll="False"
+                              ItemContainerStyle="{StaticResource RestorauntItemTheme}"
+                              ItemsSource="{Binding RestorauntsForTrip}"/>
+
+                    <ListView Grid.Column="1"
+                              Grid.Row="1"
+                              Margin="20"
+                              Padding="20"
+                              BorderThickness="3"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.CanContentScroll="False"
+                              PreviewMouseLeftButtonDown="RestorauntListView_PreviewMouseLeftButtonDown"
+                              MouseMove="RestorauntListView_MouseMove"
+                              ItemContainerStyle="{StaticResource RestorauntItemTheme}"
+                              ItemsSource="{Binding AllRestoraunts}"/>
+
+                </Grid>
+
+            </TabItem>
+            <TabItem Header="Tourist attractons"
+                     IsTabStop="False"
+                     Padding="10">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <component:ScalableTextBlock Text="Add Tourist Attractions to Trip"
+                                                 ScaleRate="2"
+                                                 Margin="20"
+                                                 FontSize="50"
+                                                 Grid.ColumnSpan="2"
+                                                 Grid.Row="0"
+                                                 HorizontalAlignment="Center"/>
+
+                    <ListView Grid.Column="0"
+                              Grid.Row="1"
+                              Margin="20"
+                              Padding="20"
+                              BorderThickness="3"
+                              AllowDrop="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.CanContentScroll="False"
+                              ItemContainerStyle="{StaticResource TouristAttractionItemTheme}"
+                              DragEnter="TouristAttractionListView_DragEnter" 
+                              Drop="TouristAttractionListView_Drop"
+                              ItemsSource="{Binding TouristAttractionsForTrip}"/>
+
+                    <ListView Grid.Column="1"
+                              Margin="20"
+                              Padding="20"
+                              BorderThickness="3"
+                              Grid.Row="1"
+                              PreviewMouseLeftButtonDown="TouristAttractionListView_PreviewMouseLeftButtonDown"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.CanContentScroll="False"
+                              ItemContainerStyle="{StaticResource TouristAttractionItemTheme}"
+                              MouseMove="TouristAttractionListView_MouseMove"
+                              ItemsSource="{Binding AllTouristAttractions}"/>
+
+                </Grid>
+
+            </TabItem>
+            <TabItem Header="Accomodations"
+                     IsTabStop="False"
+                     Padding="10">
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+
+                    <component:ScalableTextBlock Text="Add Accommodations to Trip"
+                                                 ScaleRate="2"
+                                                 Margin="20"
+                                                 FontSize="50"
+                                                 Grid.ColumnSpan="2"
+                                                 Grid.Row="0"
+                                                 HorizontalAlignment="Center"/>
+
+                    <ListView Grid.Column="0"
+                              Grid.Row="1"
+                              Margin="20"
+                              Padding="20"
+                              BorderThickness="3"
+                              AllowDrop="True"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.CanContentScroll="False"
+                              ItemContainerStyle="{StaticResource AccommodationItemTheme}"
+                              DragEnter="AccommodationsStartPointListView_DragEnter" 
+                              Drop="AccommodationListView_Drop"
+                              ItemsSource="{Binding AccommodationsForTrip}"/>
+
+                    <ListView Grid.Column="1"
+                              Grid.Row="1"
+                              Margin="20"
+                              Padding="20"
+                              BorderThickness="3"
+                              PreviewMouseLeftButtonDown="AccommodationListView_PreviewMouseLeftButtonDown"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              ScrollViewer.CanContentScroll="False"
+                              ItemContainerStyle="{StaticResource AccommodationItemTheme}"
+                              MouseMove="AccommodationListView_MouseMove"
+                              ItemsSource="{Binding AllAccommodations}"/>
+
+                </Grid>
+
+            </TabItem>
+            <TabItem Header="Finalize"
+                     IsTabStop="False"
+                     Padding="10">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                Margin="20 0"
+                                MaxWidth="700">
+
+                        <ContentControl Margin="0 25">
+                            <ContentControl.Style>
+                                <Style TargetType="ContentControl">
                                     <Setter Property="Content">
                                         <Setter.Value>
-                                            <component:ScalableTextBlock Text="Modify trip"
+                                            <component:ScalableTextBlock Text="Create trip"
                                                                          VerticalAlignment="Center"
-                                                                         Grid.Column="1"
                                                                          FontSize="54"
                                                                          ScaleRate="2"
                                                                          HorizontalAlignment="Center"
                                                                          FontWeight="SemiBold"/>
                                         </Setter.Value>
                                     </Setter>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ContentControl.Style>
-                </ContentControl>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding DataContext.Modifying, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
+                                            <Setter Property="Content">
+                                                <Setter.Value>
+                                                    <component:ScalableTextBlock Text="Modify trip"
+                                                                                 VerticalAlignment="Center"
+                                                                                 Grid.Column="1"
+                                                                                 FontSize="54"
+                                                                                 ScaleRate="2"
+                                                                                 HorizontalAlignment="Center"
+                                                                                 FontWeight="SemiBold"/>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ContentControl.Style>
+                        </ContentControl>
 
-                <StackPanel Margin="0 10">
-                    <component:ScalableTextBlock Text="Departure"
-                                                 FontSize="32"
-                                                 ScaleRate="2"/>
-                    <ComboBox Style="{StaticResource LocationComboBoxTheme}"
-                              ItemsSource="{Binding Locations}"
-                              VerticalContentAlignment="Center"
-                              HorizontalContentAlignment="Center"
-                              SelectedItem="{Binding SelectedDepartureLocation}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}"
-                                           FontSize="24"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                        <StackPanel Margin="0 10">
+                            <component:ScalableTextBlock Text="Departure date and time"
+                                                         FontSize="32"
+                                                         ScaleRate="2"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
 
-                </StackPanel>
-                <StackPanel Margin="0 10">
-                    <component:ScalableTextBlock Text="Destination"
-                                                 FontSize="32"
-                                                 ScaleRate="2"/>
-                    <ComboBox Style="{StaticResource LocationComboBoxTheme}"
-                              VerticalContentAlignment="Center"
-                              HorizontalContentAlignment="Center"
-                              ItemsSource="{Binding Locations}"
-                              SelectedItem="{Binding SelectedDestinationLocation}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}"
-                                           FontSize="24"/>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </StackPanel>
+                                <DatePicker Grid.Column="0"
+                                            Style="{StaticResource CustomDatePickerTheme}"
+                                            Margin="5 0"
+                                            SelectedDate="{Binding DepartureDate}"/>
+                                <ComboBox Grid.Column="1"
+                                          Margin="5 0"
+                                          ItemsSource="{Binding Hours}"
+                                          VerticalContentAlignment="Center"
+                                          HorizontalContentAlignment="Center"
+                                          SelectedItem="{Binding DepartureTimeHours}"/>
+                                <ComboBox Grid.Column="2"
+                                          Margin="5 0"
+                                          VerticalContentAlignment="Center"
+                                          HorizontalContentAlignment="Center"
+                                          ItemsSource="{Binding Minutes}"
+                                          SelectedValue="{Binding DepartureTimeMinutes}"/>
+                            </Grid>
+                        </StackPanel>
 
-                <StackPanel Margin="0 10">
-                    <component:ScalableTextBlock Text="Departure date and time"
-                                                 FontSize="32"
-                                                 ScaleRate="2"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="4*"/>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0 10">
+                            <component:ScalableTextBlock Text="Destination date and time"
+                                                         FontSize="32"
+                                                         ScaleRate="2"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="4*"/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
 
-                        <DatePicker Grid.Column="0"
-                                    Style="{StaticResource CustomDatePickerTheme}"
-                                    Margin="5 0"
-                                    SelectedDate="{Binding DepartureDate}"/>
-                        <ComboBox Grid.Column="1"
-                                  Margin="5 0"
-                                  ItemsSource="{Binding Hours}"
-                                  VerticalContentAlignment="Center"
-                                  HorizontalContentAlignment="Center"
-                                  SelectedItem="{Binding DepartureTimeHours}"/>
-                        <ComboBox Grid.Column="2"
-                                  Margin="5 0"
-                                  VerticalContentAlignment="Center"
-                                  HorizontalContentAlignment="Center"
-                                  ItemsSource="{Binding Minutes}"
-                                  SelectedValue="{Binding DepartureTimeMinutes}"/>
-                    </Grid>
-                </StackPanel>
+                                <DatePicker Grid.Column="0"
+                                            Style="{StaticResource CustomDatePickerTheme}"
+                                            Margin="5 0"
+                                            SelectedDate="{Binding ArrivalDate}"/>
+                                <ComboBox Grid.Column="1"
+                                          Margin="5 0"
+                                          VerticalContentAlignment="Center"
+                                          HorizontalContentAlignment="Center"
+                                          ItemsSource="{Binding Hours}"
+                                          SelectedItem="{Binding ArrivalTimeHours}"/>
+                                <ComboBox Grid.Column="2"
+                                          Margin="5 0"
+                                          VerticalContentAlignment="Center"
+                                          HorizontalContentAlignment="Center"
+                                          ItemsSource="{Binding Minutes}"
+                                          SelectedItem="{Binding ArrivalTimeMinutes}"/>
+                            </Grid>
+                        </StackPanel>
+                        <StackPanel Margin="0 10">
+                            <component:ScalableTextBlock Text="Price"
+                                                         FontSize="32"
+                                                         ScaleRate="2"/>
+                            <TextBox Style="{StaticResource FormTextBoxTheme}"
+                                     Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}"/>
 
-                <StackPanel Margin="0 10">
-                    <component:ScalableTextBlock Text="Destination date and time"
-                                                 FontSize="32"
-                                                 ScaleRate="2"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="4*"/>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
+                        </StackPanel>
 
-                        <DatePicker Grid.Column="0"
-                                    Style="{StaticResource CustomDatePickerTheme}"
-                                    Margin="5 0"
-                                    SelectedDate="{Binding ArrivalDate}"/>
-                        <ComboBox Grid.Column="1"
-                                  Margin="5 0"
-                                  VerticalContentAlignment="Center"
-                                  HorizontalContentAlignment="Center"
-                                  ItemsSource="{Binding Hours}"
-                                  SelectedItem="{Binding ArrivalTimeHours}"/>
-                        <ComboBox Grid.Column="2"
-                                  Margin="5 0"
-                                  VerticalContentAlignment="Center"
-                                  HorizontalContentAlignment="Center"
-                                  ItemsSource="{Binding Minutes}"
-                                  SelectedItem="{Binding ArrivalTimeMinutes}"/>
-                    </Grid>
-                </StackPanel>
-                <StackPanel Margin="0 10">
-                    <component:ScalableTextBlock Text="Price"
-                                                 FontSize="32"
-                                                 ScaleRate="2"/>
-                    <TextBox Style="{StaticResource FormTextBoxTheme}"
-                             Text="{Binding Price, UpdateSourceTrigger=PropertyChanged}"/>
+                        <StackPanel Orientation="Horizontal"
+                                    VerticalAlignment="Center"
+                                    HorizontalAlignment="Center"
+                                    Margin="0 20">
+                            <Button Margin="10 0"
+                                    Content="Finish"
+                                    Style="{StaticResource FormButtonTheme}"
+                                    Command="{Binding CreateTripCommand}"/>
+                        </StackPanel>
 
-                </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
 
-                <StackPanel Orientation="Horizontal"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Center"
-                            Margin="0 20">
-                    <ContentControl>
-                        <ContentControl.Style>
-                            <Style TargetType="ContentControl">
-                                <Setter Property="Content">
-                                    <Setter.Value>
-                                        <Button Margin="10 0"
-                                                Content="Create"
-                                                Style="{StaticResource FormButtonTheme}"
-                                                Command="{Binding CreateTripCommand}"/>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding DataContext.Modifying, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
-                                        <Setter Property="Content">
-                                            <Setter.Value>
-                                                <Button Margin="10 0"
-                                                        Content="Modify"
-                                                        Style="{StaticResource FormButtonTheme}"
-                                                        Command="{Binding CreateTripCommand}"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ContentControl.Style>
-                    </ContentControl>
-                    <Button Content="Back"
-                            Margin="10 0"
-                            Style="{StaticResource FormButtonTheme}"
-                            Command="{Binding BackToAllTripsViewCommand}"/>
-                </StackPanel>
-                    <Button Content="Add location"
-                            Command="{Binding OpenCreateLocationPopupCommand}"
-                            HorizontalAlignment="Center"
-                            Margin="10 0"
-                            Style="{StaticResource FormButtonTheme}"/>
-                
-            </StackPanel>
-        </ScrollViewer>
+            </TabItem>
+        </TabControl>
 
     </Grid>
 </UserControl>

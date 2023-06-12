@@ -4,10 +4,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using TravelAgent.Core;
+using TravelAgent.Exception;
 using TravelAgent.MVVM.Model;
 using TravelAgent.MVVM.View.Popup;
 
@@ -15,7 +17,7 @@ namespace TravelAgent.MVVM.ViewModel
 {
     public class CreateTripViewModel : Core.ViewModel
     {
-        private TripModel? _tripForModification;
+        public TripModel? TripForModification { get; private set; }
 
         private bool _modifying;
 
@@ -25,16 +27,39 @@ namespace TravelAgent.MVVM.ViewModel
             set { _modifying = value; OnPropertyChanged(); }
         }
 
-        private CreateLocationPopup? _createLocationPopup;
+        private bool _changedDeparture;
+        private bool _changedDestination;
 
-        public ObservableCollection<LocationModel> Locations { get; set; }
+        public ObservableCollection<AccommodationModel> AllAccommodations { get; set; }
+        public ObservableCollection<RestorauntModel> AllRestoraunts { get; set; }
+        public ObservableCollection<TouristAttractionModel> AllTouristAttractions { get; set; }
+
+        public ObservableCollection<AccommodationModel> AccommodationsForTrip { get; set; }
+        public ObservableCollection<RestorauntModel> RestorauntsForTrip { get; set; }
+        public ObservableCollection<TouristAttractionModel> TouristAttractionsForTrip { get; set; }
+
+        private string _departureAddress;
+
+        public string DepartureAddress
+        {
+            get { return _departureAddress; }
+            set { _departureAddress = value; OnPropertyChanged(); }
+        }
+
+        private string _destinationAddress;
+
+        public string DestinationAddress
+        {
+            get { return _destinationAddress; }
+            set { _destinationAddress = value; OnPropertyChanged(); }
+        }
 
         private LocationModel? _selectedDepartureLocation;
 
         public LocationModel? SelectedDepartureLocation
         {
             get { return _selectedDepartureLocation; }
-            set { _selectedDepartureLocation = value; OnPropertyChanged(); }
+            set { _selectedDepartureLocation = value; OnPropertyChanged(); _changedDeparture = true; }
         }
 
         private LocationModel? _selectedDestinationLocation;
@@ -42,7 +67,7 @@ namespace TravelAgent.MVVM.ViewModel
         public LocationModel? SelectedDestinationLocation
         {
             get { return _selectedDestinationLocation; }
-            set { _selectedDestinationLocation = value; OnPropertyChanged(); }
+            set { _selectedDestinationLocation = value; OnPropertyChanged(); _changedDestination = true; }
         }
 
         public ObservableCollection<string> Hours { get; set; }
@@ -131,34 +156,147 @@ namespace TravelAgent.MVVM.ViewModel
             } 
         }
 
+        public EventHandler<LocationModel> DepartureAddressSearched;
+        public EventHandler<LocationModel> DestinationAddressSearched;
+
         private readonly Service.TripService _tripService;
         private readonly Service.LocationService _locationService;
         private readonly Service.NavigationService _navigationService;
+        private readonly Service.AccommodationService _accommodationService;
+        private readonly Service.TouristAttractionService _touristAttractionService;
+        private readonly Service.RestorauntService _restorauntService;
+        public Service.MapService MapService { get; }
+        public Consts Consts { get; }
 
         public ICommand CreateTripCommand { get; }
+        public ICommand SearchDepartureFromAddressCommand { get; }
+        public ICommand SearchDestinationFromAddressCommand { get; }
         public ICommand BackToAllTripsViewCommand { get; }
-        public ICommand OpenCreateLocationPopupCommand { get; }
 
         public CreateTripViewModel(
             Service.TripService tripService,
             Service.LocationService locationService,
-            Service.NavigationService navigationService)
+            Service.NavigationService navigationService,
+            Service.MapService mapService,
+            Service.AccommodationService accommodationService,
+            Service.TouristAttractionService touristAttractionService,
+            Service.RestorauntService restorauntService,
+            Consts consts)
         {
+            AllAccommodations = new ObservableCollection<AccommodationModel>();
+            AllRestoraunts = new ObservableCollection<RestorauntModel>();
+            AllTouristAttractions = new ObservableCollection<TouristAttractionModel>();
+
+            AccommodationsForTrip = new ObservableCollection<AccommodationModel>();
+            RestorauntsForTrip = new ObservableCollection<RestorauntModel>();
+            TouristAttractionsForTrip = new ObservableCollection<TouristAttractionModel>();
+
             Hours = new ObservableCollection<string>();
             Minutes = new ObservableCollection<string>();
-            Locations = new ObservableCollection<LocationModel>();
 
             _tripService = tripService;
             _locationService = locationService;
             _navigationService = navigationService;
+            _accommodationService = accommodationService;
+            _touristAttractionService = touristAttractionService;
+            _restorauntService = restorauntService;
+            MapService = mapService;
+            Consts = consts;
 
             _navigationService.NavigationCompleted += OnNavigationCompleted;
 
             CreateTripCommand = new RelayCommand(OnCreateTrip, CanCreateTrip);
+            SearchDepartureFromAddressCommand = new RelayCommand(OnSearchDepartureFromAddress, o => !string.IsNullOrWhiteSpace(DepartureAddress));
+            SearchDestinationFromAddressCommand = new RelayCommand(OnSearchDestinationFromAddress, o => !string.IsNullOrWhiteSpace(DestinationAddress));
             BackToAllTripsViewCommand = new RelayCommand(o => _navigationService.NavigateTo<AllTripsViewModel>(), o => true);
-            OpenCreateLocationPopupCommand = new Core.RelayCommand(OnOpenCreateLocationPopup, o => true);
 
             SetUpForCreation();
+        }
+
+        public async Task LoadAllRestoraunts()
+        {
+            AllRestoraunts.Clear();
+            IEnumerable<RestorauntModel> restoraunts = await _restorauntService.GetAll();
+            foreach (RestorauntModel restoraunt in restoraunts)
+            {
+                AllRestoraunts.Add(restoraunt);
+            }
+        }
+
+        public async Task LoadAllTouristAttractions()
+        {
+            AllTouristAttractions.Clear();
+            IEnumerable<TouristAttractionModel> touristAttractions = await _touristAttractionService.GetAll();
+            foreach (TouristAttractionModel touristAttraction in touristAttractions)
+            {
+                AllTouristAttractions.Add(touristAttraction);
+            }
+        }
+
+        public async Task LoadAllAccommodations()
+        {
+            AllAccommodations.Clear();
+            IEnumerable<AccommodationModel> accommodations = await _accommodationService.GetAll();
+            foreach (AccommodationModel accommodation in accommodations)
+            {
+                AllAccommodations.Add(accommodation);
+            }
+        }
+
+        public async Task LoadRestorauntsFromTrip()
+        {
+            RestorauntsForTrip.Clear();
+            IEnumerable<RestorauntModel> restoraunts = await _restorauntService.GetForTrip(TripForModification.Id);
+            foreach (RestorauntModel restoraunt in restoraunts)
+            {
+                RestorauntsForTrip.Add(restoraunt);
+            }
+        }
+
+        public async Task LoadTouristAttractionsFromTrip()
+        {
+            TouristAttractionsForTrip.Clear();
+            IEnumerable<TouristAttractionModel> touristAttractions = await _touristAttractionService.GetForTrip(TripForModification.Id);
+            foreach (TouristAttractionModel touristAttraction in touristAttractions)
+            {
+                TouristAttractionsForTrip.Add(touristAttraction);
+            }
+        }
+
+        public async Task LoadAccommodationsFromTrip()
+        {
+            AccommodationsForTrip.Clear();
+            IEnumerable<AccommodationModel> accommodations = await _accommodationService.GetForTrip(TripForModification.Id);
+            foreach (AccommodationModel accommodation in accommodations)
+            {
+                AccommodationsForTrip.Add(accommodation);
+            }
+        }
+
+        private async void OnSearchDepartureFromAddress(object o)
+        {
+            try
+            {
+                LocationModel location = await MapService.Geocode(DepartureAddress);
+                DepartureAddressSearched?.Invoke(this, location);
+            }
+            catch (LocationNotFoundException e)
+            {
+                MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void OnSearchDestinationFromAddress(object o)
+        {
+            try
+            {
+                LocationModel location = await MapService.Geocode(DestinationAddress);
+                DestinationAddressSearched?.Invoke(this, location);
+            }
+            catch (LocationNotFoundException e)
+            {
+                MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async void OnCreateTrip(object o)
@@ -179,31 +317,47 @@ namespace TravelAgent.MVVM.ViewModel
                 return;
             }
 
-            if (SelectedDepartureLocation?.Id == SelectedDestinationLocation?.Id)
-            {
-                MessageBox.Show("Departure and destination cannot be the same!");
-                return;
-            }
-
-
             TripModel trip = new TripModel()
             {
+                DepartureDateTime = DepartureDateTime,
                 Departure = SelectedDepartureLocation,
                 Destination = SelectedDestinationLocation,
-                DepartureDateTime = DepartureDateTime,
                 ArrivalDateTime = ArrivalDateTime,
                 Price = double.Parse(Price),
             };
 
-            if (_tripForModification == null)
+            if (TripForModification == null)
             {
-                await _tripService.Create(trip);
+                LocationModel departure = await _locationService.Create(SelectedDepartureLocation);
+                LocationModel destination = await _locationService.Create(SelectedDestinationLocation);
+                trip.Departure = departure;
+                trip.Destination = destination;
+                await _tripService.Create(
+                    trip,
+                    RestorauntsForTrip,
+                    AccommodationsForTrip,
+                    TouristAttractionsForTrip);
                 MessageBox.Show("Trip created successfully!");
                 SetValuesToDefault();
             }
             else
             {
-                await _tripService.Modify(_tripForModification.Id, trip);
+                if (_changedDeparture)
+                {
+                    LocationModel departure = await _locationService.Create(SelectedDepartureLocation);
+                    trip.Departure = departure;
+                }
+                if (_changedDestination)
+                {
+                    LocationModel destination = await _locationService.Create(SelectedDestinationLocation);
+                    trip.Destination = destination;
+                }
+                await _tripService.Modify(
+                    TripForModification.Id,
+                    trip,
+                    RestorauntsForTrip,
+                    AccommodationsForTrip,
+                    TouristAttractionsForTrip);
                 MessageBox.Show("Trip modified successfully!");
                 _navigationService.NavigateTo<AllTripsViewModel>();
             }
@@ -212,12 +366,17 @@ namespace TravelAgent.MVVM.ViewModel
 
         private bool CanCreateTrip(object o)
         {
-            return DepartureDate != null && ArrivalDate != null;
+            return DepartureDate != null 
+                && ArrivalDate != null
+                && SelectedDepartureLocation != null
+                && SelectedDestinationLocation != null;
         }
 
         private void SetValuesToDefault()
         {
-            SetDefaultSelectedLocations();
+            RestorauntsForTrip.Clear();
+            AccommodationsForTrip.Clear();
+            TouristAttractionsForTrip.Clear();
             DepartureDate = null;
             ArrivalDate = null;
             DepartureTimeHours = Hours[0];
@@ -227,67 +386,40 @@ namespace TravelAgent.MVVM.ViewModel
             Price = "0";
         }
         
-        private void SetValuesFromTrip()
+        private async void SetValuesFromTrip()
         {
-            SelectedDepartureLocation = Locations.FirstOrDefault(l => l.Id == _tripForModification.Departure.Id);
-            SelectedDestinationLocation = Locations.FirstOrDefault(l => l.Id == _tripForModification.Destination.Id);
-            DepartureDate = _tripForModification.DepartureDateTime;
-            ArrivalDate = _tripForModification.ArrivalDateTime;
-            DepartureTimeHours = Hours.FirstOrDefault(h => int.Parse(h) == _tripForModification.DepartureDateTime.Hour);
-            DepartureTimeMinutes = Minutes.FirstOrDefault(m => int.Parse(m) == _tripForModification.DepartureDateTime.Minute);
-            ArrivalTimeHours = Hours.FirstOrDefault(h => int.Parse(h) == _tripForModification.ArrivalDateTime.Hour);
-            ArrivalTimeMinutes = Minutes.FirstOrDefault(m => int.Parse(m) == _tripForModification.ArrivalDateTime.Minute);
-            Price = _tripForModification.Price.ToString();
+            DepartureDate = TripForModification.DepartureDateTime;
+            ArrivalDate = TripForModification.ArrivalDateTime;
+            DepartureTimeHours = Hours.FirstOrDefault(h => int.Parse(h) == TripForModification.DepartureDateTime.Hour);
+            DepartureTimeMinutes = Minutes.FirstOrDefault(m => int.Parse(m) == TripForModification.DepartureDateTime.Minute);
+            ArrivalTimeHours = Hours.FirstOrDefault(h => int.Parse(h) == TripForModification.ArrivalDateTime.Hour);
+            ArrivalTimeMinutes = Minutes.FirstOrDefault(m => int.Parse(m) == TripForModification.ArrivalDateTime.Minute);
+            Price = TripForModification.Price.ToString();
+            await LoadRestorauntsFromTrip();
+            await LoadTouristAttractionsFromTrip();
+            await LoadAccommodationsFromTrip();
         }
 
         private void OnNavigationCompleted(object? sender, Core.NavigationEventArgs e)
         {
             if (e.Extra is TripModel trip)
             {
-                _tripForModification = trip;
+                TripForModification = trip;
                 Modifying = true;
                 SetUpForModification();
             }
-
-            _createLocationPopup?.Close();
         }
 
         private async void SetUpForCreation()
         {
             SetUpTimeComboBoxes();
-            await LoadLocations();
             SetValuesToDefault();
         }
 
         private async void SetUpForModification()
         {
             SetUpTimeComboBoxes();
-            await LoadLocations();
             SetValuesFromTrip();
-        }
-
-        private async Task LoadLocations()
-        {
-            IEnumerable<LocationModel> locations = await _locationService.GetAll();
-            foreach (LocationModel location in locations)
-            {
-                Locations.Add(location);
-            }
-            SetDefaultSelectedLocations();
-        }
-
-        private void SetDefaultSelectedLocations()
-        {
-            if (Locations.Count > 1)
-            {
-                SelectedDepartureLocation = Locations[0];
-                SelectedDestinationLocation = Locations[1];
-            }
-            else if (Locations.Count == 1)
-            {
-                SelectedDepartureLocation = Locations[0];
-                SelectedDestinationLocation = Locations[0];
-            }
         }
 
         private void SetUpTimeComboBoxes()
@@ -300,13 +432,6 @@ namespace TravelAgent.MVVM.ViewModel
                 }
                 Minutes.Add(i < 10 ? $"0{i}" : $"{i}");
             }
-        }
-
-        private void OnOpenCreateLocationPopup(object o)
-        {
-            _createLocationPopup?.Close();
-            _createLocationPopup = new CreateLocationPopup();
-            _createLocationPopup.Show();
         }
 
     }

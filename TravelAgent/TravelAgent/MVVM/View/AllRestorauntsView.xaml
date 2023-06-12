@@ -18,14 +18,17 @@
                  Visibility="{Binding ToolbarVisibility}">
             <Button Content="+"
                     Padding="20 5"
+                    ToolTip="Add restoraunt"
                     Foreground="CadetBlue"
                     FontWeight="Bold"
                     Margin="10 5"/>
             <Button Content="✏️"
+                    ToolTip="Modify restoraunt"
                     Foreground="DarkGoldenrod"
                     Padding="20 5"
                     Margin="10 5"/>
             <Button Content="❌"
+                    ToolTip="Delete restoraunt"
                     Foreground="DarkRed"
                     Padding="20 5"
                     Margin="10 5"/>
@@ -35,6 +38,7 @@
                   Grid.Row="1"
                   BorderThickness="0"
                   Background="Transparent"
+                  Padding="30 0"
                   HorizontalAlignment="Center"
                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListView.ItemContainerStyle>
@@ -139,7 +143,7 @@
                                             CornerRadius="5"
                                             BorderBrush="{StaticResource ImageBorderBrush}"
                                             Margin="0 20">
-                                        <Image Source="../../../Image/Location/belgrade.jpg"/>
+                                        <Image Source="{Binding Image}"/>
                                     </Border>
 
                                 </StackPanel>
