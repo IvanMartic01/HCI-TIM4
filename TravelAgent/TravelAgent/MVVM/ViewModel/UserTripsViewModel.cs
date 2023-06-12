@@ -11,6 +11,7 @@ using TravelAgent.Core;
 using TravelAgent.Exception;
 using TravelAgent.MVVM.Model;
 using TravelAgent.MVVM.View.Popup;
+using TravelAgent.MVVM.ViewModel.Popup;
 
 namespace TravelAgent.MVVM.ViewModel
 {
@@ -26,33 +27,70 @@ namespace TravelAgent.MVVM.ViewModel
             set { _travelerVisibility = value; OnPropertyChanged(); }
         }
 
+        private UserTripSearchPopup? _userTripsSearchPopup;
+        private readonly UserTripSearchViewModel _userTripSearchViewModel;
+
         private readonly Service.UserTripService _userTripService;
+        private readonly Service.NavigationService _navigationService;
 
         public ICommand PurchaseTripCommand { get; }
+        public ICommand OpenSearchCommand { get; }
         public ICommand CancelTripCommand { get; }
 
         public UserTripsViewModel(
-            Service.UserTripService userTripService)
+            Service.UserTripService userTripService,
+            Service.NavigationService navigationService,
+            UserTripSearchViewModel userTripsSearchViewModel)
         {
             UserTrips = new ObservableCollection<UserTripModel>();
             TravelerVisibility = MainViewModel.SignedUser?.Type == UserType.Agent ? Visibility.Visible : Visibility.Collapsed;
 
             _userTripService = userTripService;
+            _navigationService = navigationService;
+            _userTripSearchViewModel = userTripsSearchViewModel;
+            _userTripSearchViewModel.UserTripViewModel = this;
+
+            _navigationService.NavigationCompleted += OnNavigationCompleted;
 
             PurchaseTripCommand = new RelayCommand(OnPurchaseTrip, o => true);
+            OpenSearchCommand = new RelayCommand(OnOpenSearch, o => true);
             CancelTripCommand = new RelayCommand(OnCancelTrip, o => true);
 
             if (MainViewModel.SignedUser?.Type == UserType.Traveler)
             {
-                LoadForUser();
+                Task.Run(async () => await LoadForUser());
             }
             else
             {
-                LoadAll();
+                Task.Run(async () => await LoadAll());
             }
         }
 
-        private async void LoadAll()
+        private void OnOpenSearch(object o)
+        {
+            _userTripsSearchPopup?.Close();
+            _userTripsSearchPopup = new UserTripSearchPopup()
+            {
+                DataContext = _userTripSearchViewModel
+            };
+            _userTripsSearchPopup.Show();
+        }
+
+        private void OnNavigationCompleted(object? sender, Core.NavigationEventArgs e)
+        {
+            if (e.ViewModelType != typeof(UserTripsViewModel))
+            {
+                MainViewModel.RemoveOpenSearchKeyBinding();
+                _userTripsSearchPopup?.Close();
+                _navigationService.NavigationCompleted -= OnNavigationCompleted;
+            }
+            else
+            {
+                MainViewModel.AddOpenSearchKeyBinding(OpenSearchCommand);
+            }
+        }
+
+        public async Task LoadAll()
         {
             UserTrips.Clear();
             IEnumerable<UserTripModel> userTrips = await _userTripService.GetAll();
@@ -62,7 +100,7 @@ namespace TravelAgent.MVVM.ViewModel
             }
         }
 
-        private async void LoadForUser()
+        public async Task LoadForUser()
         {
             UserTrips.Clear();
             IEnumerable<UserTripModel> userTrips = await _userTripService.GetForUser(MainViewModel.SignedUser.Id);

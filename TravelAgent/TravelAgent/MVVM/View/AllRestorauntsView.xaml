@@ -47,7 +47,7 @@
                                      HorizontalAlignment="Center"/>
 
         <Grid Grid.Row="2">
-            <ListView ItemsSource="{Binding AllRestoraunts}"
+            <ListView ItemsSource="{Binding Restoraunts}"
                       BorderThickness="2"
                       Background="Transparent"
                       Padding="30 0"
@@ -192,6 +192,8 @@
             <Button HorizontalAlignment="Right"
                     VerticalAlignment="Bottom"
                     Style="{StaticResource SearchButtonTheme}"
+                    ToolTip="Search (Ctrl+S)"
+                    Command="{Binding OpenSearchCommand}"
                     Margin="50"/>
             
         </Grid>

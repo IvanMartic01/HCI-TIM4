@@ -8,13 +8,15 @@ using System.Windows;
 using System.Windows.Input;
 using TravelAgent.Core;
 using TravelAgent.MVVM.Model;
+using TravelAgent.MVVM.View.Popup;
+using TravelAgent.MVVM.ViewModel.Popup;
 using TravelAgent.Service;
 
 namespace TravelAgent.MVVM.ViewModel
 {
     public class AllTouristAttractionsViewModel : Core.ViewModel
     {
-        public ObservableCollection<TouristAttractionModel> AllTouristAttractions { get; set; }
+        public ObservableCollection<TouristAttractionModel> TouristAttractions { get; set; }
 
         private Visibility _toolbarVisibility;
 
@@ -32,29 +34,48 @@ namespace TravelAgent.MVVM.ViewModel
             set { _selectedTouristAttraction = value; OnPropertyChanged(); }
         }
 
+        private TouristAttractionSearchPopup? _touristAttractionSearchPopup;
+        private readonly TouristAttractionSearchViewModel _touristAttractionSearchViewModel;
+
         private readonly Service.TouristAttractionService _touristAttractionService;
         private readonly Service.NavigationService _navigationService;
 
         public ICommand OpenCreateTouristAttractionViewComand { get; }
         public ICommand OpenModifyTouristAttractionViewComand { get; }
         public ICommand DeleteTouristAttractionCommand { get; }
+        public ICommand OpenSearchCommand { get; }
 
         public AllTouristAttractionsViewModel(
             Service.TouristAttractionService touristAttractionService, 
-            NavigationService navigationService)
+            NavigationService navigationService,
+            TouristAttractionSearchViewModel touristAttractionSearchViewModel)
         {
             ToolbarVisibility = MainViewModel.SignedUser?.Type == Core.UserType.Agent ? Visibility.Visible : Visibility.Collapsed;
-            AllTouristAttractions = new ObservableCollection<TouristAttractionModel>();
+            TouristAttractions = new ObservableCollection<TouristAttractionModel>();
 
             _touristAttractionService = touristAttractionService;
             _navigationService = navigationService;
+            _touristAttractionSearchViewModel = touristAttractionSearchViewModel;
+            _touristAttractionSearchViewModel.AllTouristAttractionsViewModel = this;
 
             _navigationService.NavigationCompleted += OnNavigationCompleted;
 
             OpenCreateTouristAttractionViewComand = new Core.RelayCommand(o => _navigationService.NavigateTo<CreateTouristAttractionViewModel>(), o => MainViewModel.SignedUser?.Type == UserType.Agent);
             OpenModifyTouristAttractionViewComand = new Core.RelayCommand(o => _navigationService.NavigateTo<CreateTouristAttractionViewModel>(SelectedTouristAttraction), o => MainViewModel.SignedUser?.Type == UserType.Agent && SelectedTouristAttraction != null);
             DeleteTouristAttractionCommand = new Core.RelayCommand(OnDeleteRestoraunt, o => MainViewModel.SignedUser?.Type == UserType.Agent && SelectedTouristAttraction != null);
-            LoadAll();
+            OpenSearchCommand = new RelayCommand(OnOpenSearch, o => true);
+
+            Task.Run(async () => await LoadAll());
+        }
+
+        private void OnOpenSearch(object o)
+        {
+            _touristAttractionSearchPopup?.Close();
+            _touristAttractionSearchPopup = new TouristAttractionSearchPopup()
+            {
+                DataContext = _touristAttractionSearchViewModel
+            };
+            _touristAttractionSearchPopup.Show();
         }
 
         private void OnNavigationCompleted(object? sender, NavigationEventArgs e)
@@ -65,6 +86,9 @@ namespace TravelAgent.MVVM.ViewModel
                 {
                     MainViewModel.RemoveCUDKeyBindings();
                 }
+                MainViewModel.RemoveCUDKeyBindings();
+
+                _touristAttractionSearchPopup?.Close();
 
                 _navigationService.NavigationCompleted -= OnNavigationCompleted;
             }
@@ -76,10 +100,9 @@ namespace TravelAgent.MVVM.ViewModel
                         OpenCreateTouristAttractionViewComand,
                         OpenModifyTouristAttractionViewComand,
                         DeleteTouristAttractionCommand);
-                    
                 }
+                MainViewModel.AddOpenSearchKeyBinding(OpenSearchCommand);
             }
-
         }
 
         private async void OnDeleteRestoraunt(object o)
@@ -88,19 +111,19 @@ namespace TravelAgent.MVVM.ViewModel
             if (result == MessageBoxResult.Yes)
             {
                 await _touristAttractionService.Delete(SelectedTouristAttraction.Id);
-                LoadAll();
+                await LoadAll();
                 MessageBox.Show("Tourist attraction deleted successfully!");
             }
 
         }
 
-        private async void LoadAll()
+        public async Task LoadAll()
         {
-            AllTouristAttractions.Clear();
+            TouristAttractions.Clear();
             IEnumerable<TouristAttractionModel> touristAttractions = await _touristAttractionService.GetAll();
             foreach (TouristAttractionModel touristAttraction in touristAttractions)
             {
-                AllTouristAttractions.Add(touristAttraction);
+                TouristAttractions.Add(touristAttraction);
             }
         }
 
