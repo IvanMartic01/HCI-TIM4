@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -33,78 +34,122 @@ namespace TravelAgent.MVVM.View
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            MapDataContext.LoadedFlights += OnLoadedFlights;
+            MapDataContext.LoadFinished += OnLoadFinished;
         }
 
-        private void OnLoadedFlights(object? sender, EventArgs e)
+        private void OnLoadFinished(object? sender, EventArgs e)
         {
-            foreach (FlightModel flight in MapDataContext.AllFlights)
+            foreach (LocationModel location in MapDataContext.AllLocations)
             {
-                MakeTakeoffPin(flight.Departure.Latitude, flight.Departure.Longitude);
-                MakeLandingPin(flight.Destination.Latitude, flight.Destination.Longitude);
-                MakeFlightLine(flight.Departure, flight.Destination);
+                mapControl.Children.Add(CreatePushpin(location.Latitude, location.Longitude, location.Name, location.Id));
             }
         }
 
-        private void MakeTakeoffPin(double latitude, double longitude)
+        private Pushpin CreatePushpin(double latitude, double longitude, string label, int tag)
         {
-            MakePin(latitude, longitude, $"{MapDataContext.Consts.PathToIcons}/airplanetakeoff.png");
-        }
-
-        private void MakeLandingPin(double latitude, double longitude)
-        {
-            MakePin(latitude, longitude, $"{MapDataContext.Consts.PathToIcons}/airplanelanding.png");
-        }
-
-        private void MakePin(double latitude, double longitude, string imagePath)
-        {
+            // Create a new Pushpin
             Pushpin pushpin = new Pushpin();
-            pushpin.Location = new Location(latitude, longitude);
             pushpin.Width = 50;
             pushpin.Height = 50;
+            pushpin.ToolTip = label;
+            pushpin.Tag = tag;
 
-            // Create a ControlTemplate for the Pushpin
-            ControlTemplate controlTemplate = new ControlTemplate(typeof(Pushpin));
+            pushpin.MouseLeftButtonDown += Pushpin_Click;
 
-            // Create an Image element and set its properties
-            Image image = new Image();
-            image.Source = new BitmapImage(new Uri(imagePath, UriKind.RelativeOrAbsolute));
+            // Set the Location of the Pushpin
+            pushpin.Location = new Location(latitude, longitude);
 
-            // Create an instance of FrameworkElementFactory to create the visual tree of the ControlTemplate
-            FrameworkElementFactory factory = new FrameworkElementFactory(typeof(Image));
-            factory.SetValue(Image.SourceProperty, image.Source);
-            factory.SetValue(Image.WidthProperty, image.Width);
-            factory.SetValue(Image.HeightProperty, image.Height);
+            // Create the custom style for the pushpin
+            Style style = new Style(typeof(Pushpin));
 
-            // Set the visual tree of the ControlTemplate to the FrameworkElementFactory
-            controlTemplate.VisualTree = factory;
+            // Create the triggers for mouse enter and leave events
+            Trigger mouseEnterTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+            mouseEnterTrigger.Setters.Add(new Setter(RenderTransformProperty, new ScaleTransform(1.2, 1.2)));
+            mouseEnterTrigger.Setters.Add(new Setter(Panel.ZIndexProperty, 1));
+            mouseEnterTrigger.Setters.Add(new Setter(Control.CursorProperty, Cursors.Hand));
 
-            // Set the ControlTemplate of the Pushpin
-            pushpin.Template = controlTemplate;
+            Trigger mouseLeaveTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = false };
+            mouseLeaveTrigger.Setters.Add(new Setter(RenderTransformProperty, new ScaleTransform(1, 1)));
+            mouseLeaveTrigger.Setters.Add(new Setter(Panel.ZIndexProperty, 0));
 
-            // Add the Pushpin to the Map
-            mapControl.Children.Add(pushpin);
+            // Add the triggers to the style
+            style.Triggers.Add(mouseEnterTrigger);
+            style.Triggers.Add(mouseLeaveTrigger);
+
+            // Apply the style to the pushpin
+            pushpin.Style = style;
+
+            return pushpin;
         }
 
-        private void MakeFlightLine(LocationModel departure, LocationModel destination)
+        private void Pushpin_Click(object sender, MouseButtonEventArgs e)
         {
-            // Create a new MapPolyline
-            MapPolyline mapPolyline = new MapPolyline();
-            mapPolyline.Stroke = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(255, 17, 17, 17));
-            mapPolyline.StrokeThickness = 2;
-            mapPolyline.StrokeDashArray = new System.Windows.Media.DoubleCollection() { 4 };
+            Pushpin clickedPushpin = (Pushpin)sender;
 
-            // Create a new LocationCollection
-            LocationCollection locationCollection = new LocationCollection();
-            locationCollection.Add(new Location(departure.Latitude, departure.Longitude));
-            locationCollection.Add(new Location(destination.Latitude, destination.Longitude));
+            LocationModel? location = MapDataContext.AllLocations.FirstOrDefault(l => l.Id == int.Parse(clickedPushpin.Tag.ToString()));
 
-            // Set the Locations property of the MapPolyline
-            mapPolyline.Locations = locationCollection;
+            if (location == null)
+            {
+                return;
+            }
 
-            // Add the MapPolyline to the Children collection of the Map
-            mapControl.Children.Add(mapPolyline);
+            // Set the image and text in the popup
+            locationImage.Source = new BitmapImage(new Uri($"{MapDataContext.Consts.PathToLocationImages}/{location.Image}", UriKind.RelativeOrAbsolute));
+            locationName.Text = location.Name;
+            locationContainer.Visibility = Visibility.Visible;
         }
+
+        private void closePopupButton_Click(object sender, RoutedEventArgs e)
+        {
+            locationContainer.Visibility = Visibility.Collapsed;
+        }
+
+        // !! CODE BELOW DOES NOT WORK !!
+        // dragging the ContentControl which shows the location information
+        //------------------------------------------------------------------------------------
+        private bool isDragging;
+        private Point dragStartPosition;
+        private double originalLeft;
+        private double originalTop;
+
+        private void ContentControl_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            var contentControl = (ContentControl)sender;
+
+            // Capture the mouse and store the initial position
+            contentControl.CaptureMouse();
+            isDragging = true;
+            dragStartPosition = e.GetPosition(contentControl);
+            originalLeft = Canvas.GetLeft(contentControl);
+            originalTop = Canvas.GetTop(contentControl);
+        }
+
+        private void ContentControl_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging)
+            {
+                var contentControl = (ContentControl)sender;
+
+                // Calculate the new position based on the mouse movement
+                var currentPosition = e.GetPosition(contentControl);
+                var deltaX = currentPosition.X - dragStartPosition.X;
+                var deltaY = currentPosition.Y - dragStartPosition.Y;
+
+                // Update the position of the ContentControl within the Canvas
+                Canvas.SetLeft(contentControl, originalLeft + deltaX);
+                Canvas.SetTop(contentControl, originalTop + deltaY);
+            }
+        }
+
+        private void ContentControl_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            var contentControl = (ContentControl)sender;
+
+            // Release the mouse capture and stop dragging
+            contentControl.ReleaseMouseCapture();
+            isDragging = false;
+        }
+        //------------------------------------------------------------------------------------
 
     }
 }

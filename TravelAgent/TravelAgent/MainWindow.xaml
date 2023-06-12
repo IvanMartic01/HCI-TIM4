@@ -10,29 +10,29 @@
         Title="Travel Agent" Height="720" Width="1280"
         Background="#fff"
         WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
         Closing="MainWindow_Closing">
     <Grid>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Menu for traveler -->
         <Menu Grid.Row="0"
-              Grid.RowSpan="2"
-              Visibility="{Binding MenuVisibility}">
+              Visibility="{Binding TravelerMenuVisibility}">
             <MenuItem Header="View">
-                <MenuItem Header="Flights"
-                          Command="{Binding OpenAllFlightsViewCommand}"/>
+                <MenuItem Header="Trips"
+                          Command="{Binding OpenAllTripsViewCommand}"/>
                 <MenuItem Header="Tourist attractions"
                           Command="{Binding OpenAllTouristAttractionsViewCommand}"/>
                 <MenuItem Header="Restoraunts"
                           Command="{Binding OpenAllRestorauntsViewCommand}"/>
                 <MenuItem Header="Accomodations"
                           Command="{Binding OpenAllAccomodationsViewCommand}"/>
-                <MenuItem Header="Purchased flights"
-                          Command="{Binding OpenPurchasedFlightsViewCommand}"/>
+                <MenuItem Header="Acquired trips"
+                          Command="{Binding OpenUserTripsViewCommand}"/>
             </MenuItem>
             <MenuItem Header="Map"
                       Command="{Binding OpenMapsCommand}"/>
@@ -41,8 +41,27 @@
             <MenuItem Header="Logout"
                       Command="{Binding LogoutCommand}"/>
         </Menu>
+
+        <!-- Menu for agent -->
+        <Menu Grid.Row="0"
+              Visibility="{Binding AgentMenuVisibility}">
+            <MenuItem Header="View">
+                <MenuItem Header="Trips"
+                          Command="{Binding OpenAllTripsViewCommand}"/>
+                <MenuItem Header="Tourist attractions"
+                          Command="{Binding OpenAllTouristAttractionsViewCommand}"/>
+                <MenuItem Header="Restoraunts"
+                          Command="{Binding OpenAllRestorauntsViewCommand}"/>
+                <MenuItem Header="Accomodations"
+                          Command="{Binding OpenAllAccomodationsViewCommand}"/>
+                <MenuItem Header="Sold trips"/>
+            </MenuItem>
+            <MenuItem Header="Help"/>
+            <MenuItem Header="Logout"
+                      Command="{Binding LogoutCommand}"/>
+        </Menu>
         
-        <ContentControl Grid.Row="2"
+        <ContentControl Grid.Row="1"
                         IsTabStop="False"
                         Content="{Binding NavigationService.CurrentViewModel}">
             <ContentControl.Resources>
@@ -55,8 +74,8 @@
                     <view:RegisterView/>
                 </DataTemplate>
 
-                <DataTemplate DataType="{x:Type viewModel:AllFlightsViewModel}">
-                    <view:AllFlightsView/>
+                <DataTemplate DataType="{x:Type viewModel:AllTripsViewModel}">
+                    <view:AllTripsView/>
                 </DataTemplate>
 
                 <DataTemplate DataType="{x:Type viewModel:AllTouristAttractionsViewModel}">
@@ -67,8 +86,8 @@
                     <view:AllRestorauntsView/>
                 </DataTemplate>
 
-                <DataTemplate DataType="{x:Type viewModel:AllAccomodationsViewModel}">
-                    <view:AllAccomodationsView/>
+                <DataTemplate DataType="{x:Type viewModel:AllAccommodationsViewModel}">
+                    <view:AllAccommodationsView/>
                 </DataTemplate>
 
                 <DataTemplate DataType="{x:Type viewModel:MapViewModel}">
@@ -79,8 +98,8 @@
                     <view:MapLocationDetailsView/>
                 </DataTemplate>
 
-                <DataTemplate DataType="{x:Type viewModel:PurchasedFlightsViewModel}">
-                    <view:PurchasedFlightsView/>
+                <DataTemplate DataType="{x:Type viewModel:UserTripsViewModel}">
+                    <view:UserTripsView/>
                 </DataTemplate>
 
             </ContentControl.Resources>

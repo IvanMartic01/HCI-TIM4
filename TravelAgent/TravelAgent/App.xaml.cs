@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Navigation;
 using TravelAgent.Core;
+using TravelAgent.MVVM.View.Popup;
 using TravelAgent.MVVM.ViewModel;
+using TravelAgent.MVVM.ViewModel.Popup;
 
 namespace TravelAgent
 {
@@ -37,19 +39,22 @@ namespace TravelAgent
             services.AddTransient<MainViewModel>();
             services.AddTransient<LoginViewModel>();
             services.AddTransient<RegisterViewModel>();
-            services.AddTransient<AllFlightsViewModel>();
+            services.AddTransient<AllTripsViewModel>();
             services.AddTransient<AllTouristAttractionsViewModel>();
             services.AddTransient<AllRestorauntsViewModel>();
-            services.AddTransient<AllAccomodationsViewModel>();
-            services.AddTransient<PurchasedFlightsViewModel>();
+            services.AddTransient<AllAccommodationsViewModel>();
+            services.AddTransient<UserTripsViewModel>();
             services.AddTransient<MapViewModel>();
             services.AddTransient<MapLocationDetailsViewModel>();
+            services.AddTransient<SeeDealViewModel>();
 
             // register Service classes for injection here (use AddSingleton)
             services.AddSingleton<Service.NavigationService>();
             services.AddSingleton<Service.DatabaseExecutionService>();
             services.AddSingleton<Service.UserService>();
-            services.AddSingleton<Service.FlightService>();
+            services.AddSingleton<Service.TripService>();
+            services.AddSingleton<Service.LocationService>();
+            services.AddSingleton<Service.UserTripService>();
 
             // setting the SQLite provider
             SQLitePCL.Batteries.Init();

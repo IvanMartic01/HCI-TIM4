@@ -16,9 +16,18 @@ namespace TravelAgent.Core
         public string PathToRestorauntImages { get; }
         public string PathToIcons { get; }
         
-        public string ConnectionString { get; }
+        public string SqliteConnectionString { get; }
         public string DateTimeFormatString { get; }
         public string BingMapsApiKey { get; }
+
+        // table names
+        public string UsersTableName { get; }
+        public string TripsTableName { get; }
+        public string LocationsTableName { get; }
+        public string RestorauntsTableName { get; }
+        public string AccomodationsTableName { get; }
+        public string TouristAttractionsTableName { get; }
+        public string UsersTripsTableName { get; }
 
         public Consts()
         {
@@ -27,9 +36,17 @@ namespace TravelAgent.Core
             PathToLocationImages = $"{RelativePathRoot}/Image/Location";
             PathToRestorauntImages = $"{RelativePathRoot}/Image/Restoraunt";
             PathToIcons = $"{RelativePathRoot}/Image/Icon";
-            ConnectionString = $"Data Source={PathToDatabase}";
+            SqliteConnectionString = $"Data Source={PathToDatabase}";
             DateTimeFormatString  = "d.M.yyyy. H:m:s";
             BingMapsApiKey  = "AlMtjm3qYzhPYIYWWq76wu7Be68h6ebShf43PYwn1RH8a05_Ksk_mz9_M5m71Rmr";
+
+            UsersTableName = "users";
+            TripsTableName = "trips";
+            LocationsTableName = "locations";
+            RestorauntsTableName = "restoraunts";
+            AccomodationsTableName = "accomodations";
+            TouristAttractionsTableName = "tourist_attractions";
+            UsersTripsTableName = "users_trips";
         }
     }
 }

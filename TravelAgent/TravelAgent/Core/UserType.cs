@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TravelAgent.MVVM.ViewModel
+namespace TravelAgent.Core
 {
-    public class AllAccomodationsViewModel : Core.ViewModel
+    public enum UserType
     {
+        Traveler,
+        Agent
     }
 }

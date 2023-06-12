@@ -14,23 +14,32 @@ namespace TravelAgent.MVVM.ViewModel
 {
     public class MainViewModel : Core.ViewModel
     {
-        private Visibility _menuVisibility;
+        private Visibility _travelerMenuVisibility;
 
-        public Visibility MenuVisibility
+        public Visibility TravelerMenuVisibility
         {
-            get { return _menuVisibility; }
-            set { _menuVisibility = value; OnPropertyChanged(); }
+            get { return _travelerMenuVisibility; }
+            set { _travelerMenuVisibility = value; OnPropertyChanged(); }
+        }
+
+        private Visibility _agentMenuVisibility;
+
+        public Visibility AgentMenuVisibility
+        {
+            get { return _agentMenuVisibility; }
+            set { _agentMenuVisibility = value; OnPropertyChanged(); }
         }
 
         public static UserModel? SignedUser { get; set; }
+        public static UserType? SignedUserType => SignedUser?.Type;
 
         public NavigationService NavigationService { get; }
 
-        public ICommand OpenAllFlightsViewCommand { get; }
+        public ICommand OpenAllTripsViewCommand { get; }
         public ICommand OpenAllTouristAttractionsViewCommand { get; }
         public ICommand OpenAllRestorauntsViewCommand { get; }
         public ICommand OpenAllAccomodationsViewCommand { get; }
-        public ICommand OpenPurchasedFlightsViewCommand { get; }
+        public ICommand OpenUserTripsViewCommand { get; }
         public ICommand OpenMapsCommand { get; }
         public ICommand OpenHelpCommand { get; }
         public ICommand LogoutCommand { get; }
@@ -40,11 +49,11 @@ namespace TravelAgent.MVVM.ViewModel
         {
             NavigationService = navigationService;
 
-            OpenAllFlightsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<AllFlightsViewModel>(), o => true);
+            OpenAllTripsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<AllTripsViewModel>(), o => true);
             OpenAllTouristAttractionsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<AllTouristAttractionsViewModel>(), o => true);
             OpenAllRestorauntsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<AllRestorauntsViewModel>(), o => true);
-            OpenAllAccomodationsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<AllAccomodationsViewModel>(), o => true);
-            OpenPurchasedFlightsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<PurchasedFlightsViewModel>(), o => true);
+            OpenAllAccomodationsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<AllAccommodationsViewModel>(), o => true);
+            OpenUserTripsViewCommand = new RelayCommand(o => NavigationService.NavigateTo<UserTripsViewModel>(), o => true);
             OpenMapsCommand = new RelayCommand(o => NavigationService.NavigateTo<MapViewModel>(), o => true);
             OpenHelpCommand = new RelayCommand(o => MessageBox.Show("This is very helpful :)"), o => true);
             LogoutCommand = new RelayCommand(OnLogout, o => true);
@@ -53,15 +62,25 @@ namespace TravelAgent.MVVM.ViewModel
             {
                 if (viewModelType == typeof(LoginViewModel) || viewModelType == typeof(RegisterViewModel))
                 {
-                    MenuVisibility = Visibility.Collapsed;
+                    TravelerMenuVisibility = Visibility.Collapsed;
+                    AgentMenuVisibility = Visibility.Collapsed;
                 }
                 else
                 {
-                    MenuVisibility = Visibility.Visible;
+                    if (SignedUser?.Type == UserType.Traveler)
+                    {
+                        TravelerMenuVisibility = Visibility.Visible;
+                        AgentMenuVisibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        TravelerMenuVisibility = Visibility.Collapsed;
+                        AgentMenuVisibility = Visibility.Visible;
+                    }
                 }
             };
 
-            NavigationService.NavigateTo<AllFlightsViewModel>();
+            NavigationService.NavigateTo<LoginViewModel>();
         }
 
         private void OnLogout(object o)
